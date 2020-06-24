@@ -1,0 +1,11 @@
+*~
+*.pyc
+__pycache__
+
+# Pycharm related files
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/tasks.xml
+
+# OA files
+*.cdslck*

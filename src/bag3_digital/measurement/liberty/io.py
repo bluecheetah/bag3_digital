@@ -86,7 +86,7 @@ async def async_generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
     gen_specs: Mapping[str, Any] = read_yaml(gen_specs_file)
     impl_lib: str = gen_specs['impl_lib']
     impl_cell: str = gen_specs['impl_cell']
-    lay_cls: str = gen_specs.get('lay_class', '')
+    dut_cls: str = gen_specs.get('dut_class', '')
     dut_params: Optional[Mapping[str, Any]] = gen_specs.get('params', None)
     name_prefix: str = gen_specs.get('name_prefix', '')
     name_suffix: str = gen_specs.get('name_suffix', '')
@@ -104,8 +104,8 @@ async def async_generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
     log_file = str(lib_root_dir / 'lib_gen.log')
     sim_db = prj.make_sim_db(lib_root_dir / 'dsn', log_file, impl_lib, dsn_options=dsn_options,
                              force_sim=force_sim, precision=sim_precision, log_level=log_level)
-    if lay_cls and dut_params is not None:
-        dut = await sim_db.async_new_design(impl_cell, lay_cls, dut_params, export_lay=export_lay,
+    if dut_cls and dut_params is not None:
+        dut = await sim_db.async_new_design(impl_cell, dut_cls, dut_params, export_lay=export_lay,
                                             name_prefix=name_prefix, name_suffix=name_suffix)
     else:
         dut = None

@@ -86,7 +86,7 @@ async def async_generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
     gen_specs: Mapping[str, Any] = read_yaml(gen_specs_file)
     impl_lib: str = gen_specs['impl_lib']
     impl_cell: str = gen_specs['impl_cell']
-    dut_cls: str = gen_specs.get('dut_class', '')
+    dut_cls: str = gen_specs.get('dut_class', gen_specs.get('lay_class', ''))
     dut_params: Optional[Mapping[str, Any]] = gen_specs.get('params', None)
     name_prefix: str = gen_specs.get('name_prefix', '')
     name_suffix: str = gen_specs.get('name_suffix', '')

@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Blue Cheetah Analog Design Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 lib_name: bag3_digital
 cell_name: nand
 view_name: symbol
@@ -82,27 +67,11 @@ shapes:
       net: ""
       points:
         -
-          - 0
           - 80
+          - 110
         -
-          - 80
-          - 80
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 6
-        - 90
-      alignment: 1
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: in<1:0>
+          - 110
+          - 110
   -
     - 5
     - layer: 231
@@ -110,83 +79,11 @@ shapes:
       net: ""
       points:
         -
-          - 220
           - 80
+          - 50
         -
-          - 160
-          - 80
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 214
-        - 90
-      alignment: 7
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: out
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 100
-          - 160
-        -
-          - 100
-          - 120
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 90
-        - 154
-      alignment: 1
-      orient: R270
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VDD
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 100
-          - 0
-        -
-          - 100
-          - 40
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 90
-        - 6
-      alignment: 7
-      orient: R270
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VSS
+          - 110
+          - 50
   -
     - 0
     - layer: 236
@@ -215,6 +112,98 @@ shapes:
       text: "[@instanceName]"
       evaluator: cdsNLPEvalText
   -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 80
+        -
+          - 80
+          - 80
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 100
+          - 0
+        -
+          - 100
+          - 40
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 80
+          - 110
+        -
+          - 80
+          - 50
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 100
+          - 160
+        -
+          - 100
+          - 120
+  -
+    - 2
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      ang_start: 4.8230462015585855
+      ang_stop: 1.4601391056210009
+      bbox:
+        - 114
+        - 50
+        - 140
+        - 110
+  -
+    - 4
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      bbox:
+        - 140
+        - 70
+        - 160
+        - 90
+  -
+    - 0
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      bbox:
+        - 60
+        - 40
+        - 180
+        - 120
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 220
+          - 80
+        -
+          - 160
+          - 80
+  -
     - 8
     - layer: 231
       purpose: 237
@@ -232,64 +221,81 @@ shapes:
       text: "[@partName]"
       evaluator: cdsNLPEvalText
   -
-    - 0
-    - layer: 231
-      purpose: 4294967295
+    - 7
+    - layer: 229
+      purpose: 237
       net: ""
-      bbox:
-        - 60
-        - 40
-        - 180
-        - 120
-  -
-    - 2
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      ang_start: 4.8230462015585855
-      ang_stop: 1.4601391056210009
-      bbox:
-        - 82
-        - 50
-        - 140
-        - 110
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 80
-          - 110
-        -
-          - 80
-          - 50
-  -
-    - 4
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 140
-        - 70
-        - 160
+      origin:
+        - 6
         - 90
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: in<1:0>
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 90
+        - 154
+      alignment: 1
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 90
+        - 6
+      alignment: 7
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 214
+        - 90
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: out
 instances:
   {}
 props:
-  instNamePrefix:
-    - 3
-    - X
   interfaceLastChanged:
     - 4
-    - time_val: 1559610263
+    - time_val: 1614060152
   partName:
     - 3
     - nand
   pin#:
     - 0
-    - 6
+    - 15
   portOrder:
     - 5
     - name: ILList
@@ -300,13 +306,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 270
+    - 362
   _dbvCvTimeStamp:
     - 0
-    - 270
+    - 362
   cdbRevision:
     - 0
     - 227612
-  cdnSPDesignMajorVersion:
-    - 0
-    - 2

@@ -1,26 +1,11 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Blue Cheetah Analog Design Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 lib_name: bag3_digital
 cell_name: inv_tristate
 view_name: symbol
 bbox:
   - -4
-  - 16
+  - -4
   - 204
-  - 184
+  - 164
 terminals:
   VDD:
     obj:
@@ -30,9 +15,9 @@ terminals:
         net: ""
         bbox:
           - 96
-          - 176
+          - 156
           - 104
-          - 184
+          - 164
     stype: 1
     ttype: 2
   VSS:
@@ -43,12 +28,38 @@ terminals:
         net: ""
         bbox:
           - 96
-          - 16
+          - -4
           - 104
-          - 24
+          - 4
     stype: 2
     ttype: 2
   en:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 56
+          - 4
+          - 64
+    stype: 0
+    ttype: 0
+  enb:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 96
+          - 4
+          - 104
+    stype: 0
+    ttype: 0
+  in:
     obj:
       - 0
       - layer: 229
@@ -61,32 +72,6 @@ terminals:
           - 84
     stype: 0
     ttype: 0
-  enb:
-    obj:
-      - 0
-      - layer: 229
-        purpose: 4294967295
-        net: ""
-        bbox:
-          - -4
-          - 116
-          - 4
-          - 124
-    stype: 0
-    ttype: 0
-  in:
-    obj:
-      - 0
-      - layer: 229
-        purpose: 4294967295
-        net: ""
-        bbox:
-          - -4
-          - 96
-          - 4
-          - 104
-    stype: 0
-    ttype: 0
   out:
     obj:
       - 0
@@ -95,124 +80,12 @@ terminals:
         net: ""
         bbox:
           - 196
-          - 96
+          - 76
           - 204
-          - 104
+          - 84
     stype: 0
     ttype: 1
 shapes:
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 0
-          - 100
-        -
-          - 40
-          - 100
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 6
-        - 110
-      alignment: 1
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: in
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 190
-          - 100
-        -
-          - 190
-          - 100
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 194
-        - 110
-      alignment: 7
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: out
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 100
-          - 180
-        -
-          - 100
-          - 140
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 90
-        - 174
-      alignment: 1
-      orient: R270
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VDD
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 100
-          - 20
-        -
-          - 100
-          - 60
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 90
-        - 26
-      alignment: 7
-      orient: R270
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VSS
   -
     - 0
     - layer: 236
@@ -220,9 +93,9 @@ shapes:
       net: ""
       bbox:
         - 0
-        - 20
+        - 0
         - 200
-        - 180
+        - 160
   -
     - 8
     - layer: 236
@@ -230,7 +103,7 @@ shapes:
       net: ""
       origin:
         - 170
-        - 150
+        - 130
       alignment: 8
       orient: R0
       font: 5
@@ -241,13 +114,147 @@ shapes:
       text: "[@instanceName]"
       evaluator: cdsNLPEvalText
   -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 190
+          - 80
+        -
+          - 190
+          - 80
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 80
+        -
+          - 40
+          - 80
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 60
+        -
+          - 60
+          - 60
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 100
+        -
+          - 60
+          - 100
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 40
+          - 80
+        -
+          - 60
+          - 80
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 100
+          - 0
+        -
+          - 100
+          - 40
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 100
+          - 160
+        -
+          - 100
+          - 120
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 60
+          - 110
+        -
+          - 60
+          - 50
+        -
+          - 120
+          - 80
+        -
+          - 60
+          - 110
+  -
+    - 4
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      bbox:
+        - 120
+        - 70
+        - 140
+        - 90
+  -
+    - 0
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      bbox:
+        - 40
+        - 40
+        - 160
+        - 120
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 140
+          - 80
+        -
+          - 200
+          - 80
+  -
     - 8
     - layer: 231
       purpose: 237
       net: ""
       origin:
         - 100
-        - 85
+        - 65
       alignment: 4
       orient: R0
       font: 5
@@ -258,67 +265,21 @@ shapes:
       text: "[@partName]"
       evaluator: cdsNLPEvalText
   -
-    - 0
-    - layer: 231
-      purpose: 4294967295
+    - 7
+    - layer: 229
+      purpose: 237
       net: ""
-      bbox:
-        - 40
-        - 60
-        - 160
-        - 140
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 60
-          - 130
-        -
-          - 60
-          - 70
-        -
-          - 120
-          - 100
-        -
-          - 60
-          - 130
-  -
-    - 4
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 120
+      origin:
+        - 6
         - 90
-        - 140
-        - 110
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 40
-          - 100
-        -
-          - 60
-          - 100
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 140
-          - 100
-        -
-          - 200
-          - 100
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: in
   -
     - 7
     - layer: 229
@@ -326,7 +287,23 @@ shapes:
       net: ""
       origin:
         - 6
-        - 130
+        - 70
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: en
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 6
+        - 110
       alignment: 1
       orient: R0
       font: 5
@@ -341,55 +318,60 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 6
         - 90
+        - 154
       alignment: 1
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 90
+        - 6
+      alignment: 7
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 194
+        - 90
+      alignment: 7
       orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: en
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 0
-          - 120
-        -
-          - 60
-          - 120
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 0
-          - 80
-        -
-          - 60
-          - 80
+      text: out
 instances:
   {}
 props:
-  instNamePrefix:
-    - 3
-    - X
   interfaceLastChanged:
     - 4
-    - time_val: 1561387772
+    - time_val: 1614060817
   partName:
     - 3
     - inv_tristate
   pin#:
     - 0
-    - 6
+    - 12
   portOrder:
     - 5
     - name: ILList
@@ -400,13 +382,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 227
+    - 239
   _dbvCvTimeStamp:
     - 0
-    - 227
+    - 239
   cdbRevision:
     - 0
     - 227612
-  cdnSPDesignMajorVersion:
-    - 0
-    - 2

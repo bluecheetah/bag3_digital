@@ -201,7 +201,7 @@ class LatchCore(MOSBase):
         warrs = [t0.get_pin('pout'), t0.get_pin('nout'), t1.get_pin('pout'), t1.get_pin('nout'),
                  inv.get_pin('nin')]
         self.connect_to_tracks(warrs, mid_tid)
-        self.add_pin('outb', inv.get_pin('in'))
+        self.add_pin('outb', inv.get_pin('in'), hide=True)
         self.add_pin('noutb', inv.get_pin('nin'), hide=True)
         self.add_pin('poutb', inv.get_pin('nin'), hide=True)
 
@@ -688,14 +688,13 @@ class RstLatchCore(MOSBase):
             self.add_pin('clk', clk)
             self.add_pin('clkb', clkb)
 
-        self.add_pin('outb', [nor.get_pin('in<1>'), mid_vm_warr])
+        self.add_pin('outb', [nor.get_pin('in<1>'), mid_vm_warr], hide=True)
         self.add_pin('noutb', nor.get_pin('nin<1>'), hide=True)
         self.add_pin('poutb', nor.get_pin('nin<1>'), hide=True)
         self.add_pin('rst', nor.get_pin('in<0>'))
         self.add_pin('nrst', nor.get_pin('nin<0>'), hide=True)
         self.add_pin('prst', nor.get_pin('nin<0>'), hide=True)
         self.add_pin('mid_vm', mid_vm_warr, hide=True)
-
 
         self.add_pin('nclk', t0_en, label='clk:', hide=vertical_clk)
         self.add_pin('pclk', t1_enb, label='clk:', hide=vertical_clk)

@@ -47,18 +47,15 @@ class bag3_digital__rst_flop(Module):
             m_params='Master Parameters',
             s_params='Slave Parameters',
             inv_params='Inverter Params',
-            dual_output='True to export out and outb',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Dict[str, Any]:
         return dict(
             inv_params=None,
-            dual_output=True,
         )
 
-    def design(self, m_params: Param, s_params: Param, inv_params: Param, dual_output: bool
-               ) -> None:
+    def design(self, m_params: Param, s_params: Param, inv_params: Param) -> None:
         self.instances['XM'].design(**m_params)
         self.instances['XS'].design(**s_params)
         if inv_params:
@@ -66,9 +63,3 @@ class bag3_digital__rst_flop(Module):
         else:
             self.add_pin('clkb', TermType.input)
             self.delete_instance('XB')
-
-        if dual_output:
-            self.remove_instance('XNC')
-        else:
-            self.remove_pin('outb')
-            self.reconnect_instance_terminal('XNC', 'noConn', 'outb')

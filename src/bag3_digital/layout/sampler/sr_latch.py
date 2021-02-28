@@ -114,7 +114,7 @@ class SRLatchSymmetricHalf(MOSBase):
         else:
             seg_rst = 0
 
-        if seg_ps & 1 or seg_nr & 1 or seg_rst & 1 or seg_obuf & 1:
+        if seg_ps & 1 or seg_nr & 1 or seg_rst & 1 or seg_obuf & 1 or seg_ibuf & 1:
             raise ValueError('ps, nr, rst, and buf must have even number of segments')
 
         # placement

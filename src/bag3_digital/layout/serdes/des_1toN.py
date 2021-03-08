@@ -32,6 +32,13 @@ class Des1toN(MOSBase):
             pinfo='The MOSBasePlaceInfo object.',
             seg_dict='Dictionary of segments',
             des_ratio='Number of deserialized outputs',
+            export_nets='True to export intermediate nets',
+        )
+
+    @classmethod
+    def get_default_param_values(cls) -> Mapping[str, Any]:
+        return dict(
+            export_nets=False,
         )
 
     def draw_layout(self) -> None:
@@ -40,6 +47,7 @@ class Des1toN(MOSBase):
 
         seg_dict: Mapping[str, int] = self.params['seg_dict']
         des_ratio: int = self.params['des_ratio']
+        export_nets: bool = self.params['export_nets']
 
         # make masters
         ff_params = dict(pinfo=pinfo, seg=seg_dict['flop_fast'])
@@ -109,7 +117,9 @@ class Des1toN(MOSBase):
 
             self.reexport(fs.get_port('out'), net_name=f'dout<{idx}>')
 
-            self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
+            d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
+            if export_nets:
+                self.add_pin(f'd<{idx}>', d_int)
 
             if idx == 0:
                 self.reexport(ff.get_port('pin'), net_name='din', hide=False)
@@ -160,10 +170,13 @@ class Des1toN(MOSBase):
         clkb_vm_idx = self.grid.coord_to_track(vm_layer, clkb_pout.upper, RoundMode.NEAREST)
         w_vm_clk = self.tr_manager.get_width(vm_layer, 'clk')
         clkb_vm = TrackID(vm_layer, clkb_vm_idx, w_vm_clk)
-        clkb_list.append(self.connect_to_tracks([clkb_pout, clkb_nout], clkb_vm))
+        clkb_vm = self.connect_to_tracks([clkb_pout, clkb_nout], clkb_vm)
+        clkb_list.append(clkb_vm)
         clkb_xm_idx = self.tr_manager.get_next_track(xm_layer, vss0_xm_idx, 'sup', 'clk', 1)
         w_xm_clk = self.tr_manager.get_width(xm_layer, 'clk')
-        self.connect_to_tracks(clkb_list, TrackID(xm_layer, clkb_xm_idx, w_xm_clk))
+        clkb_xm = self.connect_to_tracks(clkb_list, TrackID(xm_layer, clkb_xm_idx, w_xm_clk))
+        if export_nets:
+            self.add_pin('clkb', [clkb_vm, clkb_xm])
 
         # clk
         clk_vm = self.tr_manager.get_next_track_obj(clkb_vm, 'clk', 'clk', -1)
@@ -181,9 +194,12 @@ class Des1toN(MOSBase):
         clk_divb_nout = invs.get_pin('nout')
         clk_divb_vm_idx = self.grid.coord_to_track(vm_layer, clk_divb_pout.upper, RoundMode.NEAREST)
         clk_divb_vm = TrackID(vm_layer, clk_divb_vm_idx, w_vm_clk)
-        clk_divb_list.append(self.connect_to_tracks([clk_divb_pout, clk_divb_nout], clk_divb_vm))
+        clk_divb_vm = self.connect_to_tracks([clk_divb_pout, clk_divb_nout], clk_divb_vm)
+        clk_divb_list.append(clk_divb_vm)
         clk_divb_xm_idx = self.tr_manager.get_next_track(xm_layer, vss1_xm_idx, 'sup', 'clk', -1)
-        self.connect_to_tracks(clk_divb_list, TrackID(xm_layer, clk_divb_xm_idx, w_xm_clk))
+        clk_divb_xm = self.connect_to_tracks(clk_divb_list, TrackID(xm_layer, clk_divb_xm_idx, w_xm_clk))
+        if export_nets:
+            self.add_pin('clk_divb', [clk_divb_vm, clk_divb_xm])
 
         # clk_div
         clk_div_vm = self.tr_manager.get_next_track_obj(clk_divb_vm, 'clk', 'clk', -1)
@@ -203,4 +219,5 @@ class Des1toN(MOSBase):
             inv_fast=invf_master.sch_params,
             inv_slow=invs_master.sch_params,
             des_ratio=des_ratio,
+            export_nets=export_nets,
         )

@@ -39,6 +39,8 @@ from bag.design.module import Module
 from bag.design.database import ModuleDB
 from bag.util.immutable import Param
 
+from pybag.enum import TermType
+
 
 # noinspection PyPep8Naming
 class bag3_digital__des_1toN(Module):
@@ -69,10 +71,11 @@ class bag3_digital__des_1toN(Module):
             inv_fast='Parameters for fast clock inverter',
             inv_slow='Parameters for divided slow clock inverter',
             des_ratio='Number of deserialized outputs',
+            export_nets='True to export intermediate nets',
         )
 
     def design(self, flop_fast: Mapping[str, Any], flop_slow: Mapping[str, Any], inv_fast: Mapping[str, Any],
-               inv_slow: Mapping[str, Any], des_ratio: int) -> None:
+               inv_slow: Mapping[str, Any], des_ratio: int, export_nets: bool) -> None:
 
         self.instances['XFF'].design(**flop_fast)
         self.reconnect_instance_terminal('XFF', 'clkb', 'clkb')
@@ -95,3 +98,8 @@ class bag3_digital__des_1toN(Module):
 
         self.array_instance('XFF', inst_term_list=fast_list)
         self.array_instance('XFS', inst_term_list=slow_list)
+
+        if export_nets:
+            self.add_pin('d' + suf, TermType.output)
+            self.add_pin('clkb', TermType.output)
+            self.add_pin('clk_divb', TermType.output)

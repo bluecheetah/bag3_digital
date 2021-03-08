@@ -3,8 +3,8 @@ cell_name: inv_tristate
 view_name: schematic
 bbox:
   - -371
-  - -245
-  - 198
+  - -244
+  - 401
   - 231
 terminals:
   VDD:
@@ -466,6 +466,118 @@ shapes:
       visible: true
       drafting: true
       text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 310
+          - 120
+        -
+          - 350
+          - 120
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 314
+        - 127
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: out
+      points:
+        -
+          - 310
+          - 50
+        -
+          - 310
+          - 90
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: out
+      origin:
+        - 303
+        - 86
+      alignment: 8
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: out
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 230
+          - 120
+        -
+          - 270
+          - 120
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 266
+        - 127
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 310
+          - 150
+        -
+          - 310
+          - 190
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 303
+        - 154
+      alignment: 2
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
 instances:
   XN:
     lib_name: xbase
@@ -509,22 +621,51 @@ instances:
     params:
       {}
     is_primitive: false
+  XR:
+    lib_name: BAG_prim
+    cell_name: pmos4_standard
+    view_name: symbol
+    xform:
+      - 270
+      - 120
+      - R0
+    bbox:
+      - 202
+      - 33
+      - 401
+      - 207
+    connections:
+      B: VDD
+      D: out
+      G: VDD
+      S: VDD
+    params:
+      l:
+        - 3
+        - 18n
+      w:
+        - 3
+        - 4
+    is_primitive: true
 props:
   connectivityLastUpdated:
     - 0
-    - 353
+    - 953
+  instance#:
+    - 0
+    - 1
   lastSchematicExtraction:
     - 4
-    - time_val: 1614060767
+    - time_val: 1615246633
   net#:
     - 0
-    - 14
+    - 0
   pin#:
     - 0
     - 6
   schGeometryLastUpdated:
     - 0
-    - 353
+    - 953
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -534,10 +675,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 353
+    - 953
   _dbvCvTimeStamp:
     - 0
-    - 353
+    - 953
   cdbRevision:
     - 0
     - 227612

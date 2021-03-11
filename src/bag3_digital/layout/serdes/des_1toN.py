@@ -32,12 +32,14 @@ class Des1toN(MOSBase):
             pinfo='The MOSBasePlaceInfo object.',
             seg_dict='Dictionary of segments',
             des_ratio='Number of deserialized outputs',
+            horz_out='True to have deserialized outputs on horizontal layer',
             export_nets='True to export intermediate nets',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
+            horz_out=True,
             export_nets=False,
         )
 
@@ -47,6 +49,7 @@ class Des1toN(MOSBase):
 
         seg_dict: Mapping[str, int] = self.params['seg_dict']
         des_ratio: int = self.params['des_ratio']
+        horz_out: bool = self.params['horz_out']
         export_nets: bool = self.params['export_nets']
 
         # make masters
@@ -92,6 +95,7 @@ class Des1toN(MOSBase):
         ff_list, fs_list = [], []
         clk_list, clkb_list = [], []
         clk_div_list, clk_divb_list = [], []
+        dout_list = []
         for idx in range(des_ratio):
             if idx == (des_ratio >> 1):
                 # mid tap
@@ -110,12 +114,23 @@ class Des1toN(MOSBase):
             fs_list.append(fs)
 
             # local routing
-            clk_list.append(ff.get_pin('clk'))
+            clk_vm = ff.get_pin('clk')
+            clk_list.append(clk_vm)
             clkb_list.append(ff.get_pin('clkb'))
             clk_div_list.append(fs.get_pin('clk'))
             clk_divb_list.append(fs.get_pin('clkb'))
 
-            self.reexport(fs.get_port('out'), net_name=f'dout<{idx}>')
+            dout = fs.get_pin('out')
+
+            # check if dout can be routed down to row 0 for connecting to xm_layer
+            if horz_out:
+                avail_vm_idx = self.tr_manager.get_next_track(vm_layer, clk_vm.track_id.base_index, 'sig', 'sig', up=-1)
+                if dout.track_id.base_index > avail_vm_idx:
+                    raise ValueError(f'dout on vm_layer={vm_layer} cannot be routed down to row 0 for connecting to '
+                                     f'xm_layer={xm_layer} because of collision / spacing error on vm_layer={vm_layer}')
+                dout_list.append(dout)
+            else:
+                self.add_pin(f'dout<{idx}>', dout)
 
             d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
             if export_nets:
@@ -164,6 +179,34 @@ class Des1toN(MOSBase):
         self.add_pin('VSS', [vss_hm[0], vss0_xm, vss1_xm])
         self.add_pin('VDD', [vdd_hm[0], vdd_xm])
 
+        # find xm_layer tracks using supply tracks as reference
+        xm_order = ['sup', 'clk', 'clk', 'sup']
+        if horz_out:
+            num_out = - (- des_ratio // 2)
+            xm_order[2:2] = ['sig'] * num_out
+        xm_locs0 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vss0_xm_idx, upper=vdd_xm_idx,
+                                                sp_type=('clk', 'clk'))
+        xm_locs1 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vdd_xm_idx, upper=vss1_xm_idx,
+                                                sp_type=('clk', 'clk'))
+
+        # get deserializer outputs on xm_layer
+        w_xm_sig = self.tr_manager.get_width(xm_layer, 'sig')
+        if horz_out:
+            # row 1
+            num_out1 = - (- des_ratio // 2)
+            for idx in range(num_out1):
+                xm_tid = TrackID(xm_layer, xm_locs1[-3 - idx], w_xm_sig)
+                dout_xm = self.connect_to_tracks(dout_list[idx], xm_tid, track_upper=xh)
+                self.add_pin(f'dout<{idx}>', dout_xm)
+
+            # row 0
+            num_out0 = des_ratio - num_out1
+            for idx in range(num_out0):
+                xm_tid = TrackID(xm_layer, xm_locs0[-3 - idx], w_xm_sig)
+                widx = idx + num_out1
+                dout_xm = self.connect_to_tracks(dout_list[widx], xm_tid, track_upper=xh)
+                self.add_pin(f'dout<{widx}>', dout_xm)
+
         # clkb
         clkb_pout = invf.get_pin('pout')
         clkb_nout = invf.get_pin('nout')
@@ -172,9 +215,8 @@ class Des1toN(MOSBase):
         clkb_vm = TrackID(vm_layer, clkb_vm_idx, w_vm_clk)
         clkb_vm = self.connect_to_tracks([clkb_pout, clkb_nout], clkb_vm)
         clkb_list.append(clkb_vm)
-        clkb_xm_idx = self.tr_manager.get_next_track(xm_layer, vss0_xm_idx, 'sup', 'clk', 1)
         w_xm_clk = self.tr_manager.get_width(xm_layer, 'clk')
-        clkb_xm = self.connect_to_tracks(clkb_list, TrackID(xm_layer, clkb_xm_idx, w_xm_clk))
+        clkb_xm = self.connect_to_tracks(clkb_list, TrackID(xm_layer, xm_locs0[1], w_xm_clk))
         if export_nets:
             self.add_pin('clkb', [clkb_vm, clkb_xm])
 
@@ -182,11 +224,7 @@ class Des1toN(MOSBase):
         clk_vm = self.tr_manager.get_next_track_obj(clkb_vm, 'clk', 'clk', -1)
         clk_vm = self.connect_to_tracks(invf.get_pin('in'), clk_vm)
         clk_list.append(clk_vm)
-        clk_xm_idx = self.tr_manager.get_next_track(xm_layer, vdd_xm_idx, 'sup', 'clk', -1)
-        next_xm_idx = self.tr_manager.get_next_track(xm_layer, clk_xm_idx, 'clk', 'clk', -1)
-        if clkb_xm_idx > next_xm_idx:
-            raise ValueError(f'Not enough space for clk routing on xm_layer={xm_layer}.')
-        clk_xm = self.connect_to_tracks(clk_list, TrackID(xm_layer, clk_xm_idx, w_xm_clk))
+        clk_xm = self.connect_to_tracks(clk_list, TrackID(xm_layer, xm_locs0[-2], w_xm_clk))
         self.add_pin('clk', [clk_vm, clk_xm])
 
         # clk_divb
@@ -196,8 +234,7 @@ class Des1toN(MOSBase):
         clk_divb_vm = TrackID(vm_layer, clk_divb_vm_idx, w_vm_clk)
         clk_divb_vm = self.connect_to_tracks([clk_divb_pout, clk_divb_nout], clk_divb_vm)
         clk_divb_list.append(clk_divb_vm)
-        clk_divb_xm_idx = self.tr_manager.get_next_track(xm_layer, vss1_xm_idx, 'sup', 'clk', -1)
-        clk_divb_xm = self.connect_to_tracks(clk_divb_list, TrackID(xm_layer, clk_divb_xm_idx, w_xm_clk))
+        clk_divb_xm = self.connect_to_tracks(clk_divb_list, TrackID(xm_layer, xm_locs1[-2], w_xm_clk))
         if export_nets:
             self.add_pin('clk_divb', [clk_divb_vm, clk_divb_xm])
 
@@ -205,11 +242,7 @@ class Des1toN(MOSBase):
         clk_div_vm = self.tr_manager.get_next_track_obj(clk_divb_vm, 'clk', 'clk', -1)
         clk_div_vm = self.connect_to_tracks(invs.get_pin('in'), clk_div_vm)
         clk_div_list.append(clk_div_vm)
-        clk_div_xm_idx = self.tr_manager.get_next_track(xm_layer, vdd_xm_idx, 'sup', 'clk', 1)
-        next_xm_idx = self.tr_manager.get_next_track(xm_layer, clk_div_xm_idx, 'clk', 'clk', 1)
-        if clk_divb_xm_idx < next_xm_idx:
-            raise ValueError(f'Not enough space for clk_div routing on xm_layer={xm_layer}.')
-        clk_div_xm = self.connect_to_tracks(clk_div_list, TrackID(xm_layer, clk_div_xm_idx, w_xm_clk))
+        clk_div_xm = self.connect_to_tracks(clk_div_list, TrackID(xm_layer, xm_locs1[1], w_xm_clk))
         self.add_pin('clk_div', [clk_div_vm, clk_div_xm])
 
         # get schematic parameters

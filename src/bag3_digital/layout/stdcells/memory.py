@@ -200,7 +200,8 @@ class LatchCore(MOSBase):
         mid_tid = TrackID(vm_layer, pinfo.get_source_track(col), width=tr_w_v)
         warrs = [t0.get_pin('pout'), t0.get_pin('nout'), t1.get_pin('pout'), t1.get_pin('nout'),
                  inv.get_pin('nin')]
-        self.connect_to_tracks(warrs, mid_tid)
+        hm_warrs = []
+        self.connect_to_tracks(warrs, mid_tid, ret_wire_list=hm_warrs)
         self.add_pin('outb', inv.get_pin('in'), hide=True)
         self.add_pin('noutb', inv.get_pin('nin'), hide=True)
         self.add_pin('poutb', inv.get_pin('nin'), hide=True)
@@ -222,6 +223,9 @@ class LatchCore(MOSBase):
         self.add_pin('pclk', t1_enb, hide=True)
         self.add_pin('nclkb', t1_en, hide=True)
         self.add_pin('pclkb', t0_enb, hide=True)
+
+        # extend t1_en to avoid corner-to-corner spacing error for hm_layer
+        self.extend_wires(t1_en, upper=hm_warrs[0].upper)
 
         # set properties
         self._sch_params = dict(

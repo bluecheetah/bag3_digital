@@ -469,7 +469,7 @@ shapes:
 instances:
   XN:
     lib_name: BAG_prim
-    cell_name: nmos4_lvt
+    cell_name: nmos4_standard
     view_name: symbol
     xform:
       - 0
@@ -488,7 +488,7 @@ instances:
     params:
       l:
         - 3
-        - 40n
+        - 18n
       nf:
         - 3
         - 4
@@ -498,7 +498,7 @@ instances:
     is_primitive: true
   XP:
     lib_name: BAG_prim
-    cell_name: pmos4_lvt
+    cell_name: pmos4_standard
     view_name: symbol
     xform:
       - 0
@@ -517,7 +517,7 @@ instances:
     params:
       l:
         - 3
-        - 40n
+        - 18n
       nf:
         - 3
         - 4
@@ -528,10 +528,10 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 1721
+    - 1927
   lastSchematicExtraction:
     - 4
-    - time_val: 1615599428
+    - time_val: 1616016760
   net#:
     - 0
     - 0
@@ -540,7 +540,7 @@ props:
     - 13
   schGeometryLastUpdated:
     - 0
-    - 1721
+    - 1927
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -550,10 +550,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 1721
+    - 1927
   _dbvCvTimeStamp:
     - 0
-    - 1721
+    - 1927
   cdbRevision:
     - 0
     - 227612

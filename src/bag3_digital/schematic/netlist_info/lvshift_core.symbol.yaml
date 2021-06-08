@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Blue Cheetah Analog Design Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 lib_name: bag3_digital
 cell_name: lvshift_core
 view_name: symbol
@@ -1089,27 +1074,23 @@ instances:
 props:
   interfaceLastChanged:
     - 4
-    - time_val: 1568509577
+    - time_val: 1623107401
   partName:
     - 3
     - lvshift_core
   pin#:
     - 0
     - 29
-  portOrder:
-    - 5
-    - name: ILList
-      bin_val: ("outn" "outp" "VDD" "VSS" "inn" "inp" "rst_casc" "rst_outn" "rst_outp")
   vendorName:
     - 3
     - ""
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 908
+    - 129
   _dbvCvTimeStamp:
     - 0
-    - 908
+    - 129
   cdbRevision:
     - 0
     - 227612

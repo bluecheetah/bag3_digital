@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Union
+from typing import Any, Mapping, Optional, Union, Sequence
 from pathlib import Path
 from scipy.signal import max_len_seq
 import matplotlib.pyplot as plt
@@ -25,11 +25,12 @@ class Des1toNMeas(MeasurementManager):
         raise NotImplementedError
 
     async def async_measure_performance(self, name: str, sim_dir: Path, sim_db: SimulationDB,
-                                        dut: Optional[DesignInstance]) -> Mapping[str, Any]:
+                                        dut: Optional[DesignInstance],
+                                        harnesses: Optional[Sequence[DesignInstance]] = None) -> Mapping[str, Any]:
         helper = GatherHelper()
         sim_envs = self.specs['sim_envs']
         for sim_env in sim_envs:
-            helper.append(self.async_meas_pvt(name, sim_dir / sim_env, sim_db, dut, sim_env))
+            helper.append(self.async_meas_pvt(name, sim_dir / sim_env, sim_db, dut, harnesses, sim_env))
 
         meas_results = await helper.gather_err()
         results = {}
@@ -39,13 +40,34 @@ class Des1toNMeas(MeasurementManager):
         return results
 
     async def async_meas_pvt(self, name: str, sim_dir: Path, sim_db: SimulationDB, dut: Optional[DesignInstance],
-                             pvt: str) -> SimData:
+                             harnesses: Optional[Sequence[DesignInstance]], pvt: str) -> SimData:
         des_ratio: int = self.specs['des_ratio']
         tbm_specs: Mapping[str, Any] = self.specs['tbm_specs']
 
+        save_outputs = ['din', 'clk', 'clk_div', f'dout<{des_ratio - 1}:0>', f'd<{des_ratio - 1}:0>', 'clkb',
+                        'clk_divb']
+
+        # harnesses
+        if harnesses:
+            clk_i = 'clk_i'
+            clk_div_i = 'clk_div_i'
+            din_i = 'din_i'
+            # make conns_dict for 3 buffers
+            harnesses_list = [
+                dict(harness_idx=0, conns=[('VDD', 'VDD'), ('VSS', 'VSS'), ('in', clk_i), ('out', 'clk')]),
+                dict(harness_idx=0, conns=[('VDD', 'VDD'), ('VSS', 'VSS'), ('in', clk_div_i), ('out', 'clk_div')]),
+                dict(harness_idx=0, conns=[('VDD', 'VDD'), ('VSS', 'VSS'), ('in', din_i), ('out', 'din')]),
+            ]
+            save_outputs.extend([clk_i, clk_div_i, din_i])
+        else:
+            clk_i = 'clk'
+            clk_div_i = 'clk_div'
+            din_i = 'din'
+            harnesses_list = []
+
         # create clk and clk_div
-        pulse_list = [dict(pin='clk', tper='t_per', tpw='t_per/2', trf='t_rf', td='t_d'),
-                      dict(pin='clk_div', tper=f't_per*{des_ratio}', tpw=f't_per*{des_ratio}/2', trf='t_rf',
+        pulse_list = [dict(pin=clk_i, tper='t_per', tpw='t_per/2', trf='t_rf', td='t_d'),
+                      dict(pin=clk_div_i, tper=f't_per*{des_ratio}', tpw=f't_per*{des_ratio}/2', trf='t_rf',
                            td='t_d_div')]
 
         # create load
@@ -55,18 +77,18 @@ class Des1toNMeas(MeasurementManager):
 
         # create input
         vpwlf_file = create_pwlf(tbm_specs['sim_params'], sim_dir)
-        load_list.append(dict(pin='din', type='vpwlf', value=vpwlf_file))
+        load_list.append(dict(pin=din_i, type='vpwlf', value=vpwlf_file))
 
         tb_params = dict(
             pulse_list=pulse_list,
             load_list=load_list,
+            harnesses_list=harnesses_list,
             sim_envs=[pvt],
-            save_outputs=['din', 'clk', 'clk_div', f'dout<{des_ratio - 1}:0>', f'd<{des_ratio - 1}:0>', 'clkb',
-                          'clk_divb']
+            save_outputs=save_outputs
         )
         tbm_specs, tb_params = setup_digital_tran(self.specs, dut, **tb_params)
         tbm = self.make_tbm(DigitalTranTB, tbm_specs)
-        sim_results = await sim_db.async_simulate_tbm_obj(name, sim_dir, dut, tbm, tb_params)
+        sim_results = await sim_db.async_simulate_tbm_obj(name, sim_dir, dut, tbm, tb_params, harnesses=harnesses)
         return sim_results.data
 
     def plot_results(self, results: Mapping[str, SimData]) -> None:

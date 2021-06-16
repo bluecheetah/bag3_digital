@@ -43,15 +43,15 @@ from pybag.enum import TermType
 
 
 # noinspection PyPep8Naming
-class bag3_digital__des_1toN(Module):
-    """Module for library bag3_digital cell des_1toN.
+class bag3_digital__serdes_generic(Module):
+    """Module for library bag3_digital cell serdes_generic.
 
     Fill in high level description here.
     """
 
     yaml_file = pkg_resources.resource_filename(__name__,
                                                 str(Path('netlist_info',
-                                                         'des_1toN.yaml')))
+                                                         'serdes_generic.yaml')))
 
     def __init__(self, database: ModuleDB, params: Param, **kwargs: Any) -> None:
         Module.__init__(self, self.yaml_file, database, params, **kwargs)
@@ -70,12 +70,13 @@ class bag3_digital__des_1toN(Module):
             flop_slow='Parameters for flop with divided slow clock',
             inv_fast='Parameters for fast clock inverter',
             inv_slow='Parameters for divided slow clock inverter',
-            des_ratio='Number of deserialized outputs',
+            ratio='Number of serialized inputs/deserialized outputs',
+            is_ser='True to make this a serializer. Otherwise, deserializer',
             export_nets='True to export intermediate nets',
         )
 
     def design(self, flop_fast: Mapping[str, Any], flop_slow: Mapping[str, Any], inv_fast: Mapping[str, Any],
-               inv_slow: Mapping[str, Any], des_ratio: int, export_nets: bool) -> None:
+               inv_slow: Mapping[str, Any], ratio: int, is_ser: bool, export_nets: bool) -> None:
 
         self.instances['XFF'].design(**flop_fast)
         self.reconnect_instance_terminal('XFF', 'clkb', 'clkb')
@@ -85,16 +86,24 @@ class bag3_digital__des_1toN(Module):
         self.instances['XINVC'].design(**inv_fast)
         self.instances['XINVD'].design(**inv_slow)
 
-        if des_ratio < 2:
-            raise ValueError(f'des_ratio={des_ratio} has to be greater than 1.')
+        if ratio < 2:
+            raise ValueError(f'ratio={ratio} has to be greater than 1.')
 
-        suf = f'<{des_ratio - 1}:0>'
-        self.rename_pin('dout', 'dout' + suf)
+        suf = f'<{ratio - 1}:0>'
+        if is_ser:
+            self.rename_pin('din', 'din' + suf)
+        else:
+            self.rename_pin('dout', 'dout' + suf)
 
         fast_list, slow_list = [], []
-        for idx in range(des_ratio):
-            fast_list.append((f'XFF{idx}', [('out', f'd<{idx}>'), ('in', f'd<{idx - 1}>' if idx else 'din')]))
-            slow_list.append((f'XFS{idx}', [('out', f'dout<{idx}>'), ('in', f'd<{idx}>')]))
+        for idx in range(ratio):
+            if is_ser:
+                fast_list.append((f'XFF{idx}', [('out', f'd<{idx + 1}>' if idx != ratio - 1 else 'dout'),
+                                                ('in', f'd<{idx}>')]))
+                slow_list.append((f'XFS{idx}', [('out', f'd<{idx}>'), ('in', f'din<{idx}>')]))
+            else:
+                fast_list.append((f'XFF{idx}', [('out', f'd<{idx}>'), ('in', f'd<{idx - 1}>' if idx else 'din')]))
+                slow_list.append((f'XFS{idx}', [('out', f'dout<{idx}>'), ('in', f'd<{idx}>')]))
 
         self.array_instance('XFF', inst_term_list=fast_list)
         self.array_instance('XFS', inst_term_list=slow_list)

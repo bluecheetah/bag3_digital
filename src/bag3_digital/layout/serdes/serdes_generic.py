@@ -124,16 +124,17 @@ class SerDesGeneric(MOSBase):
             clk_vm = ff.get_pin('clk')
             clk_list.append(clk_vm)
             clkb_list.append(ff.get_pin('clkb'))
-            clk_div_list.append(fs.get_pin('clk'))
+            clk_div_vm = fs.get_pin('clk')
+            clk_div_list.append(clk_div_vm)
             clk_divb_list.append(fs.get_pin('clkb'))
 
             if is_ser:
                 dslow = fs.get_pin('pin')
                 # Bring up to vm_layer
                 assert dslow.layer_id == hm_layer
-                dslow_vm = TrackID(vm_layer,
-                                 self.grid.coord_to_track(vm_layer, dslow.bound_box.xm, mode=RoundMode.NEAREST))
-                dslow = self.connect_to_tracks(dslow, dslow_vm)
+                avail_vm_idx = self.tr_manager.get_next_track(vm_layer, clk_div_vm.track_id.base_index, 'sig', 'sig',
+                                                              up=1)
+                dslow = self.connect_to_tracks(dslow, TrackID(vm_layer, avail_vm_idx), min_len_mode=MinLenMode.MIDDLE)
             else:
                 dslow = fs.get_pin('out')
 
@@ -141,7 +142,7 @@ class SerDesGeneric(MOSBase):
             if horz_slow:
                 avail_vm_idx = self.tr_manager.get_next_track(vm_layer, clk_vm.track_id.base_index, 'sig', 'sig', up=-1)
                 if dslow.track_id.base_index > avail_vm_idx:
-                    raise ValueError(f'dout on vm_layer={vm_layer} cannot be routed down to row 0 for connecting to '
+                    raise ValueError(f'dslow on vm_layer={vm_layer} cannot be routed down to row 0 for connecting to '
                                      f'xm_layer={xm_layer} because of collision / spacing error on vm_layer={vm_layer}')
                 dslow_list.append(dslow)
             else:

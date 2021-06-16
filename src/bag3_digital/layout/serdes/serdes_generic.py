@@ -12,34 +12,40 @@ from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 
 from ..stdcells.gates import InvCore
 from ..stdcells.memory import FlopCore
-from ...schematic.des_1toN import bag3_digital__des_1toN
+from ...schematic.serdes_generic import bag3_digital__serdes_generic
 
 
-class Des1toN(MOSBase):
+class SerDesGeneric(MOSBase):
     """
-    This deserializer cell requires both clock and divided clock as input.
+    2 rows of FF that can be used either as a serializer or deserializer.
+    All that changes are whether the slow is an input to fast (ser) or fast is
+    an input to slow (des).
+    Control whether this is Ser or Des using the param flag 'is_ser'.
+    This cell requires both clock and divided clock as inputs.
     """
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        return bag3_digital__des_1toN
+        return bag3_digital__serdes_generic
 
     @classmethod
     def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg_dict='Dictionary of segments',
-            des_ratio='Number of deserialized outputs',
-            horz_out='True to have deserialized outputs on horizontal layer',
+            ratio='Number of serialized inputs/deserialized outputs',
+            is_ser='True to make this a serializer. Otherwise, deserializer',
+            horz_slow='True to have serialized inputs/deserialized outputs on horizontal layer',
             export_nets='True to export intermediate nets',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
-            horz_out=True,
+            is_ser=False,
+            horz_slow=True,
             export_nets=False,
         )
 
@@ -48,8 +54,9 @@ class Des1toN(MOSBase):
         self.draw_base(pinfo)
 
         seg_dict: Mapping[str, int] = self.params['seg_dict']
-        des_ratio: int = self.params['des_ratio']
-        horz_out: bool = self.params['horz_out']
+        ratio: int = self.params['ratio']
+        is_ser: bool = self.params['is_ser']
+        horz_slow: bool = self.params['horz_slow']
         export_nets: bool = self.params['export_nets']
 
         # make masters
@@ -95,9 +102,9 @@ class Des1toN(MOSBase):
         ff_list, fs_list = [], []
         clk_list, clkb_list = [], []
         clk_div_list, clk_divb_list = [], []
-        dout_list = []
-        for idx in range(des_ratio):
-            if idx == (des_ratio >> 1):
+        dslow_list = []
+        for idx in range(ratio):
+            if idx == (ratio >> 1):
                 # mid tap
                 cur_col += sub_sep
                 self.add_tap(cur_col, vdd_list, vss_list, tile_idx=0)
@@ -120,25 +127,39 @@ class Des1toN(MOSBase):
             clk_div_list.append(fs.get_pin('clk'))
             clk_divb_list.append(fs.get_pin('clkb'))
 
-            dout = fs.get_pin('out')
+            if is_ser:
+                dslow = fs.get_pin('pin')
+                # Bring up to vm_layer
+                assert dslow.layer_id == hm_layer
+                dslow_vm = TrackID(vm_layer,
+                                 self.grid.coord_to_track(vm_layer, dslow.bound_box.xm, mode=RoundMode.NEAREST))
+                dslow = self.connect_to_tracks(dslow, dslow_vm)
+            else:
+                dslow = fs.get_pin('out')
 
-            # check if dout can be routed down to row 0 for connecting to xm_layer
-            if horz_out:
+            # check if dslow can be routed down to row 0 for connecting to xm_layer
+            if horz_slow:
                 avail_vm_idx = self.tr_manager.get_next_track(vm_layer, clk_vm.track_id.base_index, 'sig', 'sig', up=-1)
-                if dout.track_id.base_index > avail_vm_idx:
+                if dslow.track_id.base_index > avail_vm_idx:
                     raise ValueError(f'dout on vm_layer={vm_layer} cannot be routed down to row 0 for connecting to '
                                      f'xm_layer={xm_layer} because of collision / spacing error on vm_layer={vm_layer}')
-                dout_list.append(dout)
+                dslow_list.append(dslow)
             else:
-                self.add_pin(f'dout<{idx}>', dout)
+                prefix = 'din' if is_ser else 'dout'
+                self.add_pin(f'{prefix}<{idx}>', dslow)
 
-            d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
+            if is_ser:
+                d_int = self.connect_to_track_wires(ff.get_pin('pin'), fs.get_pin('out'))
+            else:
+                d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
             if export_nets:
                 self.add_pin(f'd<{idx}>', d_int)
 
-            if idx == 0:
+            if not is_ser and idx == 0:
                 self.reexport(ff.get_port('pin'), net_name='din', hide=False)
-            else:
+            elif is_ser and idx == ratio - 1:
+                self.reexport(ff.get_port('out'), net_name='dout', hide=False)
+            if idx != 0:
                 self.connect_wires([ff.get_pin('pin'), ff_list[-2].get_pin('pout')])
 
         # right tap
@@ -181,8 +202,8 @@ class Des1toN(MOSBase):
 
         # find xm_layer tracks using supply tracks as reference
         xm_order = ['sup', 'clk', 'clk', 'sup']
-        if horz_out:
-            num_out = - (- des_ratio // 2)
+        if horz_slow:
+            num_out = - (- ratio // 2)
             xm_order[2:2] = ['sig'] * num_out
         xm_locs0 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vss0_xm_idx, upper=vdd_xm_idx,
                                                 sp_type=('clk', 'clk'))
@@ -191,20 +212,20 @@ class Des1toN(MOSBase):
 
         # get deserializer outputs on xm_layer
         w_xm_sig = self.tr_manager.get_width(xm_layer, 'sig')
-        if horz_out:
+        if horz_slow:
             # row 1
-            num_out1 = - (- des_ratio // 2)
-            for idx in range(num_out1):
+            num_slow1 = - (- ratio // 2)
+            for idx in range(num_slow1):
                 xm_tid = TrackID(xm_layer, xm_locs1[-3 - idx], w_xm_sig)
-                dout_xm = self.connect_to_tracks(dout_list[idx], xm_tid, track_upper=xh)
+                dout_xm = self.connect_to_tracks(dslow_list[idx], xm_tid, track_upper=xh)
                 self.add_pin(f'dout<{idx}>', dout_xm)
 
             # row 0
-            num_out0 = des_ratio - num_out1
-            for idx in range(num_out0):
+            num_slow0 = ratio - num_slow1
+            for idx in range(num_slow0):
                 xm_tid = TrackID(xm_layer, xm_locs0[-3 - idx], w_xm_sig)
-                widx = idx + num_out1
-                dout_xm = self.connect_to_tracks(dout_list[widx], xm_tid, track_upper=xh)
+                widx = idx + num_slow1
+                dout_xm = self.connect_to_tracks(dslow_list[widx], xm_tid, track_upper=xh)
                 self.add_pin(f'dout<{widx}>', dout_xm)
 
         # clkb
@@ -251,6 +272,7 @@ class Des1toN(MOSBase):
             flop_slow=fs_master.sch_params,
             inv_fast=invf_master.sch_params,
             inv_slow=invs_master.sch_params,
-            des_ratio=des_ratio,
+            ratio=ratio,
             export_nets=export_nets,
+            is_ser=is_ser,
         )

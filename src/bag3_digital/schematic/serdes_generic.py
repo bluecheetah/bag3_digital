@@ -75,6 +75,13 @@ class bag3_digital__serdes_generic(Module):
             export_nets='True to export intermediate nets',
         )
 
+    def get_master_basename(self) -> str:
+        ratio: int = self.params['ratio']
+        is_ser: bool = self.params['is_ser']
+        if is_ser:
+            return f'ser_{ratio}to1'
+        return f'des_1to{ratio}'
+
     def design(self, flop_fast: Mapping[str, Any], flop_slow: Mapping[str, Any], inv_fast: Mapping[str, Any],
                inv_slow: Mapping[str, Any], ratio: int, is_ser: bool, export_nets: bool) -> None:
 

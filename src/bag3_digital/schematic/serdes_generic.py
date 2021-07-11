@@ -30,7 +30,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Dict, Any, Mapping
+from typing import Mapping, Any, Optional
 
 import pkg_resources
 from pathlib import Path
@@ -57,12 +57,12 @@ class bag3_digital__serdes_generic(Module):
         Module.__init__(self, self.yaml_file, database, params, **kwargs)
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         """Returns a dictionary from parameter names to descriptions.
 
         Returns
         -------
-        param_info : Optional[Dict[str, str]]
+        param_info : Optional[Mapping[str, str]]
             dictionary from parameter names to descriptions.
         """
         return dict(
@@ -70,10 +70,15 @@ class bag3_digital__serdes_generic(Module):
             flop_slow='Parameters for flop with divided slow clock',
             inv_fast='Parameters for fast clock inverter',
             inv_slow='Parameters for divided slow clock inverter',
+            inv_data='Parameters for data-out inverter',
             ratio='Number of serialized inputs/deserialized outputs',
             is_ser='True to make this a serializer. Otherwise, deserializer',
             export_nets='True to export intermediate nets',
         )
+
+    @classmethod
+    def get_default_param_values(cls) -> Mapping[str, Any]:
+        return dict(inv_data=None)
 
     def get_master_basename(self) -> str:
         ratio: int = self.params['ratio']
@@ -83,7 +88,8 @@ class bag3_digital__serdes_generic(Module):
         return f'des_1to{ratio}'
 
     def design(self, flop_fast: Mapping[str, Any], flop_slow: Mapping[str, Any], inv_fast: Mapping[str, Any],
-               inv_slow: Mapping[str, Any], ratio: int, is_ser: bool, export_nets: bool) -> None:
+               inv_slow: Mapping[str, Any], ratio: int, is_ser: bool, export_nets: bool,
+               inv_data: Optional[Mapping[str, Any]]) -> None:
 
         self.instances['XFF'].design(**flop_fast)
         self.reconnect_instance_terminal('XFF', 'clkb', 'clkb')
@@ -92,6 +98,13 @@ class bag3_digital__serdes_generic(Module):
 
         self.instances['XINVC'].design(**inv_fast)
         self.instances['XINVD'].design(**inv_slow)
+
+        if inv_data:
+            assert is_ser, 'data-out inverter is supported for serializer only, not deserializer.'
+            self.instances['XINV'].design(**inv_data)
+            self.add_pin('doutb', TermType.output)
+        else:
+            self.remove_instance('XINV')
 
         if ratio < 2:
             raise ValueError(f'ratio={ratio} has to be greater than 1.')

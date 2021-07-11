@@ -3,7 +3,7 @@ cell_name: serdes_generic
 view_name: schematic
 bbox:
   - -881
-  - -210
+  - -500
   - 108
   - 420
 terminals:
@@ -746,6 +746,118 @@ shapes:
       visible: true
       drafting: true
       text: clk_div
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: dout
+      points:
+        -
+          - -570
+          - -380
+        -
+          - -530
+          - -380
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: dout
+      origin:
+        - -534
+        - -373
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: dout
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - -430
+          - -300
+        -
+          - -430
+          - -260
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -437
+        - -296
+      alignment: 2
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - -430
+          - -500
+        -
+          - -430
+          - -460
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - -437
+        - -464
+      alignment: 8
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: doutb
+      points:
+        -
+          - -330
+          - -380
+        -
+          - -290
+          - -380
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: doutb
+      origin:
+        - -326
+        - -373
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: doutb
 instances:
   XFF:
     lib_name: bag3_digital
@@ -788,6 +900,27 @@ instances:
       clk: clk_div
       in: d
       out: dout
+    params:
+      {}
+    is_primitive: false
+  XINV:
+    lib_name: bag3_digital
+    cell_name: inv
+    view_name: symbol
+    xform:
+      - -530
+      - -460
+      - R0
+    bbox:
+      - -534
+      - -464
+      - -326
+      - -296
+    connections:
+      VDD: VDD
+      VSS: VSS
+      in: dout
+      out: doutb
     params:
       {}
     is_primitive: false
@@ -836,22 +969,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 1568
+    - 2029
   instance#:
     - 0
-    - 2
+    - 3
   lastSchematicExtraction:
     - 4
-    - time_val: 1615013203
+    - time_val: 1625982346
   net#:
     - 0
-    - 0
+    - 2
   pin#:
     - 0
     - 6
   schGeometryLastUpdated:
     - 0
-    - 1568
+    - 2029
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -861,10 +994,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 1568
+    - 2029
   _dbvCvTimeStamp:
     - 0
-    - 1568
+    - 2029
   cdbRevision:
     - 0
     - 227612

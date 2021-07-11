@@ -39,6 +39,7 @@ class SerDesGeneric(MOSBase):
             is_ser='True to make this a serializer. Otherwise, deserializer',
             horz_slow='True to have serialized inputs/deserialized outputs on horizontal layer',
             export_nets='True to export intermediate nets',
+            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.'
         )
 
     @classmethod
@@ -47,6 +48,7 @@ class SerDesGeneric(MOSBase):
             is_ser=False,
             horz_slow=True,
             export_nets=False,
+            tap_sep_flop=-1,
         )
 
     def draw_layout(self) -> None:
@@ -58,6 +60,9 @@ class SerDesGeneric(MOSBase):
         is_ser: bool = self.params['is_ser']
         horz_slow: bool = self.params['horz_slow']
         export_nets: bool = self.params['export_nets']
+        tap_sep_flop: int = self.params['tap_sep_flop']
+        if tap_sep_flop <= 0:
+            tap_sep_flop = ratio >> 1
 
         # make masters
         ff_params = dict(pinfo=pinfo, seg=seg_dict['flop_fast'])
@@ -89,13 +94,13 @@ class SerDesGeneric(MOSBase):
         vdd_list, vss_list = [], []
         self.add_tap(0, vdd_list, vss_list, tile_idx=0)
         self.add_tap(0, vdd_list, vss_list, tile_idx=1)
-        _coord = self.grid.track_to_coord(self.conn_layer, tap_ncols >> 1)
-        sup_vm_idx = [self.grid.coord_to_track(vm_layer, _coord, RoundMode.NEAREST)]
+        sup_coords = [self.grid.track_to_coord(self.conn_layer, tap_ncols >> 1)]
 
         # clock inverters
         cur_col = tap_ncols + sub_sep
         invf = self.add_tile(invf_master, 0, cur_col)
         invs = self.add_tile(invs_master, 1, cur_col)
+        inv_list = [invf, invs]
 
         # flops
         cur_col += inv_ncols
@@ -104,13 +109,12 @@ class SerDesGeneric(MOSBase):
         clk_div_list, clk_divb_list = [], []
         dslow_list = []
         for idx in range(ratio):
-            if idx == (ratio >> 1):
+            if idx > 0 and idx % tap_sep_flop == 0:
                 # mid tap
                 cur_col += sub_sep
                 self.add_tap(cur_col, vdd_list, vss_list, tile_idx=0)
                 self.add_tap(cur_col, vdd_list, vss_list, tile_idx=1)
-                _coord = self.grid.track_to_coord(self.conn_layer, cur_col + (tap_ncols >> 1))
-                sup_vm_idx.append(self.grid.coord_to_track(vm_layer, _coord, RoundMode.NEAREST))
+                sup_coords.append(self.grid.track_to_coord(self.conn_layer, cur_col + (tap_ncols >> 1)))
                 cur_col += tap_ncols + sub_sep
             else:
                 cur_col += blk_sp
@@ -132,9 +136,8 @@ class SerDesGeneric(MOSBase):
                 dslow = fs.get_pin('pin')
                 # Bring up to vm_layer
                 assert dslow.layer_id == hm_layer
-                avail_vm_idx = self.tr_manager.get_next_track(vm_layer, clk_div_vm.track_id.base_index, 'sig', 'sig',
-                                                              up=1)
-                dslow = self.connect_to_tracks(dslow, TrackID(vm_layer, avail_vm_idx), min_len_mode=MinLenMode.MIDDLE)
+                avail_vm_tid = self.tr_manager.get_next_track_obj(clk_div_vm, 'sig', 'sig', count_rel_tracks=1)
+                dslow = self.connect_to_tracks(dslow, avail_vm_tid, min_len_mode=MinLenMode.MIDDLE)
             else:
                 dslow = fs.get_pin('out')
 
@@ -159,16 +162,48 @@ class SerDesGeneric(MOSBase):
             if not is_ser and idx == 0:
                 self.reexport(ff.get_port('pin'), net_name='din', hide=False)
             elif is_ser and idx == ratio - 1:
-                self.reexport(ff.get_port('out'), net_name='dout', hide=False)
+                self.reexport(ff.get_port('out'), net_name='dout')
             if idx != 0:
                 self.connect_wires([ff.get_pin('pin'), ff_list[-2].get_pin('pout')])
+
+        # dout inverter, if it exists
+        inv_sch_params = None
+        w_vm_sig = self.tr_manager.get_width(vm_layer, 'sig')
+        if is_ser:
+            seg_inv = seg_dict.get('inv_data', 0)
+            if seg_inv % 2:
+                raise ValueError(f'Dout inverter must have even number of fingers. inv_data={seg_inv} has to be even.')
+            if seg_inv > 0:
+                # make master
+                ff_out_hm = ff_list[-1].get_pin('pout')
+                inv_params = dict(pinfo=pinfo, seg=seg_inv // 2, vertical_out=False,
+                                  sig_locs={'pin': ff_out_hm.track_id.base_index})
+                inv_master = self.new_template(InvCore, params=inv_params)
+                inv_sch_params = dict(**inv_master.sch_params)
+                inv_sch_params.update({'seg_p': seg_inv, 'seg_n': seg_inv})
+
+                # place
+                cur_col += blk_sp
+                invd0 = self.add_tile(inv_master, 0, cur_col)
+                invd1 = self.add_tile(inv_master, 1, cur_col)
+                cur_col += inv_master.num_cols
+                inv_list.extend([invd0, invd1])
+
+                # local routing
+                inv_in_hm = invd0.get_pin('pin')
+                inv_in_vm_idx = self.grid.coord_to_track(vm_layer, inv_in_hm.lower, RoundMode.LESS_EQ)
+                inv_in_vm = self.connect_to_tracks([ff_out_hm, inv_in_hm, invd1.get_pin('pin')],
+                                                   TrackID(vm_layer, inv_in_vm_idx, w_vm_sig))
+                inv_out_vm_tid = self.tr_manager.get_next_track_obj(inv_in_vm, 'sig', 'sig', count_rel_tracks=1)
+                inv_out_vm = self.connect_to_tracks([invd0.get_pin('pout'), invd0.get_pin('nout'),
+                                                     invd1.get_pin('pout'), invd1.get_pin('nout')], inv_out_vm_tid)
+                self.add_pin('doutb', inv_out_vm)
 
         # right tap
         cur_col += sub_sep
         self.add_tap(cur_col, vdd_list, vss_list, tile_idx=0)
         self.add_tap(cur_col, vdd_list, vss_list, tile_idx=1)
-        _coord = self.grid.track_to_coord(self.conn_layer, cur_col + (tap_ncols >> 1))
-        sup_vm_idx.append(self.grid.coord_to_track(vm_layer, _coord, RoundMode.NEAREST))
+        sup_coords.append(self.grid.track_to_coord(self.conn_layer, cur_col + (tap_ncols >> 1)))
 
         self.set_mos_size()
         xh = self.bound_box.xh
@@ -176,27 +211,29 @@ class SerDesGeneric(MOSBase):
         # --- Routing --- #
         # supplies
         vss_hm_list, vdd_hm_list = [], []
-        for inst in chain([invf, invs], ff_list, fs_list):
+        for inst in chain(inv_list, ff_list, fs_list):
             vss_hm_list.append(inst.get_pin('VSS'))
             vdd_hm_list.append(inst.get_pin('VDD'))
-        vss_hm = self.connect_to_track_wires(vss_list, self.connect_wires(vss_hm_list, lower=0, upper=xh))
-        vss0_xm_idx = self.grid.coord_to_track(xm_layer, vss_hm[0][0].bound_box.ym, RoundMode.NEAREST)
-        vss1_xm_idx = self.grid.coord_to_track(xm_layer, vss_hm[0][1].bound_box.ym, RoundMode.NEAREST)
+        vss_hm = self.connect_to_track_wires(vss_list, self.connect_wires(vss_hm_list, lower=0, upper=xh))[0]
+        vss0_xm_idx = self.grid.coord_to_track(xm_layer, vss_hm[0].bound_box.ym, RoundMode.NEAREST)
+        vss1_xm_idx = self.grid.coord_to_track(xm_layer, vss_hm[1].bound_box.ym, RoundMode.NEAREST)
 
-        vdd_hm = self.connect_to_track_wires(vdd_list, self.connect_wires(vdd_hm_list, lower=0, upper=xh))
-        vdd_xm_idx = self.grid.coord_to_track(xm_layer, vdd_hm[0].bound_box.ym, RoundMode.NEAREST)
+        vdd_hm = self.connect_to_track_wires(vdd_list, self.connect_wires(vdd_hm_list, lower=0, upper=xh))[0]
+        vdd_xm_idx = self.grid.coord_to_track(xm_layer, vdd_hm.bound_box.ym, RoundMode.NEAREST)
 
         w_vm_sup = self.tr_manager.get_width(vm_layer, 'sup')
         w_xm_sup = self.tr_manager.get_width(xm_layer, 'sup')
-        vss0_vm_list, vss1_vm_list, vdd_vm_list = [], [], []
-        for vm_idx in sup_vm_idx:
-            vm_tid = TrackID(vm_layer, vm_idx, w_vm_sup)
-            vss0_vm_list.append(self.connect_to_tracks(vss_hm[0][0], vm_tid, min_len_mode=MinLenMode.UPPER))
-            vss1_vm_list.append(self.connect_to_tracks(vss_hm[0][1], vm_tid, min_len_mode=MinLenMode.LOWER))
-            vdd_vm_list.append(self.connect_to_tracks(vdd_hm[0], vm_tid, min_len_mode=MinLenMode.MIDDLE))
+        vss_vm_list, vdd_vm_list = [], []
+        for _coord in sup_coords:
+            _, _locs = self.tr_manager.place_wires(vm_layer, ['sup', 'sup'], center_coord=_coord)
+            vss_tid = TrackID(vm_layer, _locs[0], w_vm_sup)
+            vss_vm_list.append(self.connect_to_tracks(vss_hm, vss_tid, min_len_mode=MinLenMode.UPPER))
+            vdd_tid = TrackID(vm_layer, _locs[-1], w_vm_sup)
+            vdd_vm_list.append(self.connect_to_tracks(vdd_hm, vdd_tid, track_lower=vss_vm_list[-1].lower,
+                                                      track_upper=vss_vm_list[-1].upper))
 
-        vss0_xm = self.connect_to_tracks(vss0_vm_list, TrackID(xm_layer, vss0_xm_idx, w_xm_sup))
-        vss1_xm = self.connect_to_tracks(vss1_vm_list, TrackID(xm_layer, vss1_xm_idx, w_xm_sup))
+        vss0_xm = self.connect_to_tracks(vss_vm_list, TrackID(xm_layer, vss0_xm_idx, w_xm_sup))
+        vss1_xm = self.connect_to_tracks(vss_vm_list, TrackID(xm_layer, vss1_xm_idx, w_xm_sup))
         vdd_xm = self.connect_to_tracks(vdd_vm_list, TrackID(xm_layer, vdd_xm_idx, w_xm_sup))
         self.add_pin('VSS', [vss_hm[0], vss0_xm, vss1_xm])
         self.add_pin('VDD', [vdd_hm[0], vdd_xm])
@@ -206,12 +243,16 @@ class SerDesGeneric(MOSBase):
         if horz_slow:
             num_out = - (- ratio // 2)
             xm_order[2:2] = ['sig'] * num_out
-        xm_locs0 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vss0_xm_idx, upper=vdd_xm_idx,
-                                                sp_type=('clk', 'clk'))
-        xm_locs1 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vdd_xm_idx, upper=vss1_xm_idx,
-                                                sp_type=('clk', 'clk'))
+        try:
+            xm_locs0 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vss0_xm_idx, upper=vdd_xm_idx,
+                                                    sp_type=('clk', 'clk'))
+            xm_locs1 = self.tr_manager.spread_wires(xm_layer, xm_order, lower=vdd_xm_idx, upper=vss1_xm_idx,
+                                                    sp_type=('clk', 'clk'))
+        except ValueError:
+            raise ValueError(f'Not enough space to route slow speed signals on horizontal layer={xm_layer}. '
+                             f'Use horz_slow=False.')
 
-        # get deserializer outputs on xm_layer
+        # get slow serializer inputs / deserializer outputs on xm_layer
         w_xm_sig = self.tr_manager.get_width(xm_layer, 'sig')
         if horz_slow:
             # row 1
@@ -276,4 +317,5 @@ class SerDesGeneric(MOSBase):
             ratio=ratio,
             export_nets=export_nets,
             is_ser=is_ser,
+            inv_data=inv_sch_params,
         )

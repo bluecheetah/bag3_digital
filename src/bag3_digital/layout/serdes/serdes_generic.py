@@ -156,8 +156,7 @@ class SerDesGeneric(MOSBase):
                 d_int = self.connect_to_track_wires(ff.get_pin('pin'), fs.get_pin('out'))
             else:
                 d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
-            if export_nets:
-                self.add_pin(f'd<{idx}>', d_int)
+            self.add_pin(f'd<{idx}>', d_int, hide=not export_nets)
 
             if not is_ser and idx == 0:
                 self.reexport(ff.get_port('pin'), net_name='din', hide=False)
@@ -235,8 +234,10 @@ class SerDesGeneric(MOSBase):
         vss0_xm = self.connect_to_tracks(vss_vm_list, TrackID(xm_layer, vss0_xm_idx, w_xm_sup))
         vss1_xm = self.connect_to_tracks(vss_vm_list, TrackID(xm_layer, vss1_xm_idx, w_xm_sup))
         vdd_xm = self.connect_to_tracks(vdd_vm_list, TrackID(xm_layer, vdd_xm_idx, w_xm_sup))
-        self.add_pin('VSS', [vss_hm[0], vss0_xm, vss1_xm])
-        self.add_pin('VDD', [vdd_hm[0], vdd_xm])
+        self.add_pin('VSS', [vss_hm, self.connect_wires([vss0_xm, vss1_xm])[0]])
+        self.add_pin('VDD', [vdd_hm, vdd_xm])
+        self.add_pin('VSS_vm', vss_vm_list, hide=True)
+        self.add_pin('VDD_vm', vdd_vm_list, hide=True)
 
         # find xm_layer tracks using supply tracks as reference
         xm_order = ['sup', 'clk', 'clk', 'sup']
@@ -280,8 +281,7 @@ class SerDesGeneric(MOSBase):
         clkb_list.append(clkb_vm)
         w_xm_clk = self.tr_manager.get_width(xm_layer, 'clk')
         clkb_xm = self.connect_to_tracks(clkb_list, TrackID(xm_layer, xm_locs0[1], w_xm_clk))
-        if export_nets:
-            self.add_pin('clkb', [clkb_vm, clkb_xm])
+        self.add_pin('clkb', [clkb_vm, clkb_xm], hide=not export_nets)
 
         # clk
         clk_vm = self.tr_manager.get_next_track_obj(clkb_vm, 'clk', 'clk', -1)
@@ -298,8 +298,7 @@ class SerDesGeneric(MOSBase):
         clk_divb_vm = self.connect_to_tracks([clk_divb_pout, clk_divb_nout], clk_divb_vm)
         clk_divb_list.append(clk_divb_vm)
         clk_divb_xm = self.connect_to_tracks(clk_divb_list, TrackID(xm_layer, xm_locs1[-2], w_xm_clk))
-        if export_nets:
-            self.add_pin('clk_divb', [clk_divb_vm, clk_divb_xm])
+        self.add_pin('clk_divb', [clk_divb_vm, clk_divb_xm], hide=not export_nets)
 
         # clk_div
         clk_div_vm = self.tr_manager.get_next_track_obj(clk_divb_vm, 'clk', 'clk', -1)

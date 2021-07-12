@@ -73,12 +73,12 @@ class bag3_digital__serdes_generic(Module):
             inv_data='Parameters for data-out inverter',
             ratio='Number of serialized inputs/deserialized outputs',
             is_ser='True to make this a serializer. Otherwise, deserializer',
-            export_nets='True to export intermediate nets',
+            export_nets='True to export intermediate nets; False by default',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
-        return dict(inv_data=None)
+        return dict(inv_data=None, export_nets=False)
 
     def get_master_basename(self) -> str:
         ratio: int = self.params['ratio']

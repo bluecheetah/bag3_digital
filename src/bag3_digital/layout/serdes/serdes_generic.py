@@ -87,7 +87,7 @@ class SerDesGeneric(MOSBase):
 
         # --- Placement --- #
         blk_sp = self.min_sep_col
-        sub_sep = self.min_sep_col
+        sub_sep = self.sub_sep_col
         tap_ncols = self.get_tap_ncol()
 
         # left tap

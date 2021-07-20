@@ -4,7 +4,7 @@ view_name: symbol
 bbox:
   - -4
   - -4
-  - 298
+  - 238
   - 164
 terminals:
   VDD:
@@ -100,7 +100,7 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 170
+        - 110
         - 130
       alignment: 2
       orient: R0
@@ -209,8 +209,8 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 125
-        - 55
+        - 45
+        - 135
       alignment: 4
       orient: R0
       font: 5
@@ -218,7 +218,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: "[@partName]"
+      text: "[@cellName]"
       evaluator: cdsNLPEvalText
   -
     - 7
@@ -306,10 +306,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 362
+    - 366
   _dbvCvTimeStamp:
     - 0
-    - 362
+    - 366
   cdbRevision:
     - 0
     - 227612

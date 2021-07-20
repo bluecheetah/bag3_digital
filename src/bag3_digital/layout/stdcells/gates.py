@@ -41,7 +41,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This module contains layout generators for a classic StrongArm latch."""
+"""This module contains layout generators for various logic gates."""
 
 from typing import Any, Dict, Sequence, Optional, Union, Tuple, Mapping, Type, List
 
@@ -1063,7 +1063,7 @@ class NANDNOR3Core(MOSBase):
             draw_pdn = self.draw_series_network
             draw_pun = self.draw_parallel_network
 
-            pdn_kwargs = dict(w=w_n, seg=seg_n, stack=stack_n, ridx=ridx_n, is_nmos=True)
+            pdn_kwargs = dict(w=w_n, seg=seg_n, stack=stack_n, ridx=ridx_n, is_nmos=True, sig_locs=sig_locs)
             pun_kwargs = dict(w=w_p, seg=seg_p, stack=stack_p, ridx=ridx_p,
                               split=seg_equal and stack_equal)
         else:
@@ -1072,7 +1072,7 @@ class NANDNOR3Core(MOSBase):
 
             pdn_kwargs = dict(w=w_n, seg=seg_n, stack=stack_n, ridx=ridx_n,
                               split=seg_equal and stack_equal)
-            pun_kwargs = dict(w=w_p, seg=seg_p, stack=stack_p, ridx=ridx_p, is_nmos=False)
+            pun_kwargs = dict(w=w_p, seg=seg_p, stack=stack_p, ridx=ridx_p, is_nmos=False, sig_locs=sig_locs)
 
         if pun_wider:
             p_warrs, p_tot_col = draw_pun(**pun_kwargs)
@@ -1239,55 +1239,28 @@ class NANDNOR3Core(MOSBase):
         return (g_warrs, [ports.d], [ports.s]), self._num_in * seg * stack
 
     def draw_series_network_stack_odd(self, w: int, seg: int, stack: int, ridx: int,
-                                      is_nmos: bool, ref_width: int = 0
+                                      is_nmos: bool, sig_locs: Mapping[str, Union[float, HalfInt]], ref_width: int = 0
                                       ) -> Tuple[Tuple[List[List[WireArray]], List[WireArray],
                                                        List[WireArray]], int]:
-        ports_l, ports_r, g_warrs, tot_col = self.draw_network_shared_stack_odd(w, seg, stack, ridx,
+        ports_0, ports_1, ports_2, tot_col = self.draw_network_shared_stack_odd(w, seg, stack, ridx,
                                                                                 ref_width)
 
-        if seg & 1:
-            ext_ports_l = ports_l.s
-            ext_ports_r = ports_r.s
-            int_ports_l = ports_l.d
-            int_ports_r = ports_r.d
-            num_ext_ports_l = ports_l.num_s
-            num_ext_ports_r = ports_r.num_s
-            num_int_ports_l = ports_l.num_d
+        sup_warrs = [ports_0.s]
+        out_warrs = [ports_2.d]
+        g_warrs = [[ports_0.g], [ports_1.g], [ports_2.g]]
+
+        mid0_tid = self.get_track_id(ridx, MOSWireType.DS, wire_name='sig', wire_idx=-1 if is_nmos else 0)
+        mid1_tid = self.get_track_id(ridx, MOSWireType.DS, wire_name='sig', wire_idx=-2 if is_nmos else 1)
+        if is_nmos:
+            nout_tidx = sig_locs.get('nout', self.get_track_index(ridx, MOSWireType.DS, 'sig', -1))
+            if mid1_tid.base_index == nout_tidx:
+                mid0_tid, mid1_tid = mid1_tid, mid0_tid
         else:
-            ext_ports_l = ports_l.d
-            ext_ports_r = ports_r.d
-            int_ports_l = ports_l.s
-            int_ports_r = ports_r.s
-            num_ext_ports_l = ports_l.num_d
-            num_ext_ports_r = ports_r.num_d
-            num_int_ports_l = ports_l.num_s
-
-        mid0_warrs = [int_ports_l]
-        mid1_warrs = [int_ports_r]
-        sup_warrs = []
-        out_warrs = []
-
-        num_sup_out_wires = seg - seg // 2
-
-        for i in range(num_ext_ports_l):
-            if i < num_sup_out_wires:
-                sup_warrs.append(ext_ports_l[i])
-            else:
-                mid1_warrs.append(ext_ports_l[i])
-        for i in range(num_ext_ports_r):
-            if i < num_sup_out_wires:
-                out_warrs.append(ext_ports_r[i])
-            else:
-                mid0_warrs.append(ext_ports_r[i])
-
-        mid1_tid = self.get_track_id(ridx, MOSWireType.DS, wire_name='sig',
-                                     wire_idx=0 if is_nmos else -1)
-        self.connect_to_tracks(mid1_warrs, mid1_tid)
-
-        if len(mid0_warrs) > 1 or num_int_ports_l > 1:
-            mid0_tid = self.get_track_id(ridx, MOSWireType.DS, wire_name='sig',
-                                         wire_idx=-1 if is_nmos else 0)
-            self.connect_to_tracks(mid0_warrs, mid0_tid)
+            pout_tidx = sig_locs.get('pout', self.get_track_index(ridx, MOSWireType.DS, 'sig', 0))
+            if mid1_tid.base_index == pout_tidx:
+                mid0_tid, mid1_tid = mid1_tid, mid0_tid
+        self.connect_to_tracks([ports_0.d, ports_1.s], mid0_tid)
+        self.connect_to_tracks([ports_1.d, ports_2.s], mid1_tid)
 
         return (g_warrs, out_warrs, sup_warrs), tot_col
 
@@ -1295,68 +1268,31 @@ class NANDNOR3Core(MOSBase):
                                         split: bool = True, ref_width: int = 0
                                         ) -> Tuple[Tuple[List[List[WireArray]], List[WireArray],
                                                          List[WireArray]], int]:
-        if (seg & 1) or split:
-            ports_l, ports_r, g_warrs, tot_col = self.draw_network_shared_stack_odd(w, seg, stack,
-                                                                                    ridx, ref_width)
-            sup_ports_l = ports_l.s
-            out_ports_l = ports_l.d
-            if seg & 1:
-                sup_ports_r = ports_r.d
-                out_ports_r = ports_r.s
-            else:
-                sup_ports_r = ports_r.s
-                out_ports_r = ports_r.d
-
-            sup_warrs = [sup_ports_l, sup_ports_r]
-            out_warrs = [out_ports_l, out_ports_r]
-        else:
-            tot_col = self._num_in * seg * stack
-            offset_col = (ref_width - tot_col) // 2 if tot_col < ref_width else 0
-            ports = self.add_mos(ridx, offset_col, self._num_in * seg, w=w, g_on_s=False,
-                                 stack=stack, sep_g=True)
-            num_gs_per_inp = stack * seg // 2
-            g_warrs = [list() for _ in range(3)]
-            for i in range(ports.num_g):
-                q, _ = divmod(i, num_gs_per_inp)
-                g_warrs[q].append(ports.g[i])
-            sup_warrs = [ports.s]
-            out_warrs = [ports.d]
+        ports_0, ports_1, ports_2, tot_col = self.draw_network_shared_stack_odd(w, seg, stack, ridx,
+                                                                                ref_width)
+        sup_warrs = [ports_0.s, ports_1.s, ports_2.s]
+        out_warrs = [ports_0.d, ports_1.d, ports_2.d]
+        g_warrs = [[ports_0.g], [ports_1.g], [ports_2.g]]
 
         return (g_warrs, out_warrs, sup_warrs), tot_col
 
     def draw_network_shared_stack_odd(self, w: int, seg: int, stack: int, ridx: int,
                                       ref_width: int = 0) \
-            -> Tuple[MOSPorts, MOSPorts, List[List[WireArray]], int]:
-        seg_r = self._num_in * seg // 2
-        seg_l = self._num_in * seg - seg_r
-        tot_col = (seg_l + seg_r) * stack + self.min_sep_col
+            -> Tuple[MOSPorts, MOSPorts, MOSPorts, int]:
+        tot_col = seg * stack * 3 + 2 * self.min_sep_col
         if tot_col < ref_width:
-            col_l = (ref_width - tot_col) // 2
-            col_r = tot_col + col_l
+            cur_col = (ref_width - tot_col) // 2
         else:
-            col_l = 0
-            col_r = tot_col
+            cur_col = 0
         g_on_s = bool(seg & 1)
 
-        ports_l = self.add_mos(ridx, col_l, seg_l, w=w, g_on_s=g_on_s, stack=stack, sep_g=True)
-        ports_r = self.add_mos(ridx, col_r, seg_r, w=w, g_on_s=g_on_s, stack=stack, sep_g=True,
-                               flip_lr=True)
+        ports_0 = self.add_mos(ridx, cur_col, seg, w=w, g_on_s=g_on_s, stack=stack)
+        cur_col += seg * stack + self.min_sep_col
+        ports_1 = self.add_mos(ridx, cur_col + seg * stack, seg, w=w, g_on_s=g_on_s, stack=stack, flip_lr=True)
+        cur_col += seg * stack + self.min_sep_col
+        ports_2 = self.add_mos(ridx, cur_col, seg, w=w, g_on_s=g_on_s, stack=stack)
 
-        num_gs_per_inp = stack * seg - stack * seg // 2
-        g0, g1, g2 = [], [], []
-        for i in range(ports_l.num_g):
-            if i < num_gs_per_inp:
-                g0.append(ports_l.g[i])
-            else:
-                g1.append(ports_l.g[i])
-        for i in range(ports_r.num_g):
-            if i < num_gs_per_inp:
-                g2.append(ports_r.g[i])
-            else:
-                g1.append(ports_r.g[i])
-
-        g_warrs = [g0, g1, g2]
-        return ports_l, ports_r, g_warrs, tot_col
+        return ports_0, ports_1, ports_2, tot_col
 
     def _get_gate_in_stack_even(self, idx: int, stack: int) -> int:
         """
@@ -1431,17 +1367,14 @@ class NANDNOR3Core(MOSBase):
                          key_name: str, stack: int, hm_layer: int, tr_w_h: int, up: bool
                          ) -> List[TrackID]:
         in_tidx = list(get_adj_tidx_list(self, ridx, sig_locs, MOSWireType.G, key_name, up))
-        if stack & 1:
-            in_tidx.append(in_tidx[0])
+        if f'{key_name}2' not in sig_locs:
+            in_tidx.append(
+                self.tr_manager.get_next_track(hm_layer, in_tidx[1], 'sig', 'sig', up=up))
         else:
-            if f'{key_name}2' not in sig_locs:
-                in_tidx.append(
-                    self.tr_manager.get_next_track(hm_layer, in_tidx[1], 'sig', 'sig', up=up))
-            else:
-                in2_tidx = sig_locs[f'{key_name}2']
-                if in2_tidx in in_tidx:
-                    raise ValueError('in0, in1, and in2 must all be on different tracks')
-                in_tidx.append(in2_tidx)
+            in2_tidx = sig_locs[f'{key_name}2']
+            if in2_tidx in in_tidx:
+                raise ValueError('in0, in1, and in2 must all be on different tracks')
+            in_tidx.append(in2_tidx)
         in_tid = [TrackID(hm_layer, tidx, width=tr_w_h) for tidx in in_tidx]
         return in_tid
 

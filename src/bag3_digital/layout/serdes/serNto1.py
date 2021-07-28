@@ -301,9 +301,11 @@ class SerNto1(MOSBase):
         self.add_pin('clk_buf', clk_xm, hide=not export_nets, mode=PinMode.LOWER)
 
         # clk
-        clk_in = self.connect_to_tracks(invf_0.get_pin('nin'), TrackID(vm_layer, clk_vm_locs[-1], w_vm_clk),
+        clk_in_vm = self.connect_to_tracks(invf_0.get_pin('nin'), TrackID(vm_layer, clk_vm_locs[-1], w_vm_clk),
                                         min_len_mode=MinLenMode.MIDDLE)
-        self.add_pin('clk', clk_in)
+        clk_in_xm = self.connect_to_tracks(clk_in_vm, TrackID(xm_layer, xm_locs0[2], w_xm_clk),
+                                           min_len_mode=MinLenMode.UPPER)
+        self.add_pin('clk', clk_in_xm)
 
         # clk_divb_buf
         clk_divb_vm = self.connect_to_tracks([invs_0.get_pin('pout'), invs_0.get_pin('nout'), invs_1.get_pin('nin')],
@@ -320,9 +322,12 @@ class SerNto1(MOSBase):
         self.add_pin('clk_div_buf', clk_div_xm, hide=not export_nets, mode=PinMode.LOWER)
 
         # clk_div
-        clk_div = self.connect_to_tracks(invs_0.get_pin('nin'), TrackID(vm_layer, clk_vm_locs[-1], w_vm_clk),
-                                         min_len_mode=MinLenMode.MIDDLE)
-        self.add_pin('clk_div', clk_div)
+        clk_div_vm = self.connect_to_tracks(invs_0.get_pin('nin'), TrackID(vm_layer, clk_vm_locs[-1], w_vm_clk),
+                                            min_len_mode=MinLenMode.MIDDLE)
+        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
+        clk_div_xm = self.connect_to_tracks(clk_div_vm, TrackID(xm_layer, xm_locs1[2], w_sig_xm),
+                                           min_len_mode=MinLenMode.UPPER)
+        self.add_pin('clk_div', [clk_div_vm, clk_div_xm])
 
         # connect last p<> to complete shift register
         self.connect_to_tracks([_p_ini, _p_prev], TrackID(xm_layer, xm_locs0[2], w_xm_clk))
@@ -336,7 +341,6 @@ class SerNto1(MOSBase):
         self.add_pin('doutb', doutb, mode=PinMode.UPPER)
 
         # inputs on xm_layer
-        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
         in_xm_tid = TrackID(xm_layer, xm_locs1[2], w_sig_xm)
         for idx, in_vm in enumerate(in_list):
             in_xm = self.connect_to_tracks(in_vm, in_xm_tid, min_len_mode=MinLenMode.MIDDLE)

@@ -51,7 +51,6 @@ from pybag.enum import MinLenMode, RoundMode
 
 from bag.util.math import HalfInt
 from bag.util.immutable import Param
-from bag.design.database import ModuleDB
 from bag.design.module import Module
 from bag.layout.template import TemplateDB, PyLayInstance
 from bag.layout.routing.base import TrackID, WireArray
@@ -61,6 +60,10 @@ from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 from xbase.layout.mos.data import MOSPorts
 
 from ...schematic.inv import bag3_digital__inv
+from ...schematic.inv_chain import bag3_digital__inv_chain
+from ...schematic.inv_tristate import bag3_digital__inv_tristate
+from ...schematic.nand import bag3_digital__nand
+from ...schematic.nor import bag3_digital__nor
 from ...schematic.passgate import bag3_digital__passgate
 
 
@@ -276,8 +279,7 @@ class InvChainCore(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'inv_chain')
+        return bag3_digital__inv_chain
 
     @classmethod
     def get_params_info(cls) -> Dict[str, str]:
@@ -588,8 +590,7 @@ class InvTristateCore(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'inv_tristate')
+        return bag3_digital__inv_tristate
 
     @classmethod
     def get_params_info(cls) -> Dict[str, str]:
@@ -761,8 +762,7 @@ class NAND2Core(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'nand')
+        return bag3_digital__nand
 
     @classmethod
     def get_params_info(cls) -> Dict[str, str]:
@@ -934,8 +934,9 @@ class NAND2Core(MOSBase):
             nout = self.connect_to_tracks(nports.d, nd_tid, min_len_mode=mlm_out)
             vm_tidx = sig_locs.get('out', self.grid.coord_to_track(vm_layer, pout.middle,
                                                                    mode=RoundMode.GREATER_EQ))
+            w_sig_vm = self.tr_manager.get_width(vm_layer, 'sig')
             if vertical_out:
-                out = self.connect_to_tracks([pout, nout], TrackID(vm_layer, vm_tidx))
+                out = self.connect_to_tracks([pout, nout], TrackID(vm_layer, vm_tidx, w_sig_vm))
                 self.add_pin('pout', pout, hide=True)
                 self.add_pin('nout', nout, hide=True)
                 self.add_pin('out', out)
@@ -1392,8 +1393,7 @@ class NAND3Core(NANDNOR3Core):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'nand')
+        return bag3_digital__nand
 
 
 class NOR3Core(NANDNOR3Core):
@@ -1409,8 +1409,7 @@ class NOR3Core(NANDNOR3Core):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'nor')
+        return bag3_digital__nor
 
 
 class NOR2Core(MOSBase):
@@ -1432,8 +1431,7 @@ class NOR2Core(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'nor')
+        return bag3_digital__nor
 
     @classmethod
     def get_params_info(cls) -> Dict[str, str]:
@@ -1603,8 +1601,9 @@ class NOR2Core(MOSBase):
             pout = self.connect_to_tracks(pports.d, pd_tid, min_len_mode=mlm_out)
             vm_tidx = sig_locs.get('out', self.grid.coord_to_track(vm_layer, nout.middle,
                                                                    mode=RoundMode.GREATER_EQ))
+            w_sig_vm = self.tr_manager.get_width(vm_layer, 'sig')
             if vertical_out:
-                out = self.connect_to_tracks([pout, nout], TrackID(vm_layer, vm_tidx))
+                out = self.connect_to_tracks([pout, nout], TrackID(vm_layer, vm_tidx, w_sig_vm))
                 self.add_pin('pout', pout, hide=True)
                 self.add_pin('nout', nout, hide=True)
                 self.add_pin('out', out)

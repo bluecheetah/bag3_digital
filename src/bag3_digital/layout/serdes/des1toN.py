@@ -9,18 +9,16 @@ from bag.layout.template import TemplateDB
 from bag.layout.routing.base import TrackID
 
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
+from xbase.layout.enum import MOSWireType
 
 from ..stdcells.gates import InvCore
 from ..stdcells.memory import FlopCore
-from ...schematic.serdes_generic import bag3_digital__serdes_generic
+from ...schematic.des1toN import bag3_digital__des1toN
 
 
-class SerDesGeneric(MOSBase):
+class Des1toN(MOSBase):
     """
-    2 rows of FF that can be used either as a serializer or deserializer.
-    All that changes are whether the slow is an input to fast (ser) or fast is
-    an input to slow (des).
-    Control whether this is Ser or Des using the param flag 'is_ser'.
+    2 rows of FF
     This cell requires both clock and divided clock as inputs.
     """
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
@@ -28,24 +26,26 @@ class SerDesGeneric(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        return bag3_digital__serdes_generic
+        return bag3_digital__des1toN
 
     @classmethod
     def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
+            ridx_p='pch row index',
+            ridx_n='nch row index',
             seg_dict='Dictionary of segments',
             ratio='Number of serialized inputs/deserialized outputs',
-            is_ser='True to make this a serializer. Otherwise, deserializer',
             horz_slow='True to have serialized inputs/deserialized outputs on horizontal layer',
             export_nets='True to export intermediate nets',
-            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.'
+            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
-            is_ser=False,
+            ridx_p=-1,
+            ridx_n=0,
             horz_slow=True,
             export_nets=False,
             tap_sep_flop=-1,
@@ -55,9 +55,10 @@ class SerDesGeneric(MOSBase):
         pinfo = MOSBasePlaceInfo.make_place_info(self.grid, self.params['pinfo'])
         self.draw_base(pinfo)
 
+        ridx_p: int = self.params['ridx_p']
+        ridx_n: int = self.params['ridx_n']
         seg_dict: Mapping[str, int] = self.params['seg_dict']
         ratio: int = self.params['ratio']
-        is_ser: bool = self.params['is_ser']
         horz_slow: bool = self.params['horz_slow']
         export_nets: bool = self.params['export_nets']
         tap_sep_flop: int = self.params['tap_sep_flop']
@@ -73,13 +74,32 @@ class SerDesGeneric(MOSBase):
 
         f_ncols = max(ff_master.num_cols, fs_master.num_cols)
 
-        invf_params = dict(pinfo=pinfo, seg=seg_dict['inv_fast'], vertical_out=False)
-        invf_master = self.new_template(InvCore, params=invf_params)
+        # sig_locs for inverters in inverter chain
+        pd1_tidx = self.get_track_index(ridx_p, MOSWireType.DS, 'sig', 1)
+        pd0_tidx = self.get_track_index(ridx_p, MOSWireType.DS, 'sig', 0)
+        pg_tidx = self.get_track_index(ridx_p, MOSWireType.G, 'sig', -2)
+        ng_tidx = self.get_track_index(ridx_n, MOSWireType.G, 'sig', 1)
+        nd1_tidx = self.get_track_index(ridx_n, MOSWireType.DS, 'sig', -1)
+        nd0_tidx = self.get_track_index(ridx_n, MOSWireType.DS, 'sig', -2)
+        seg_fast: int = seg_dict['inv_fast']
+        assert seg_fast & 1 == 0, f'seg_dict["inv_fast"]={seg_fast} has to be even.'
+        invf_0_params = dict(pinfo=pinfo, seg=seg_fast, vertical_out=False,
+                             sig_locs={'in': ng_tidx, 'pout': pd0_tidx, 'nout': nd1_tidx})
+        invf_0_master = self.new_template(InvCore, params=invf_0_params)
+        invf_1_params = dict(pinfo=pinfo, seg=seg_fast, vertical_out=False,
+                             sig_locs={'in': pg_tidx, 'pout': pd1_tidx, 'nout': nd0_tidx})
+        invf_1_master = self.new_template(InvCore, params=invf_1_params)
 
-        invs_params = dict(pinfo=pinfo, seg=seg_dict['inv_slow'], vertical_out=False)
-        invs_master = self.new_template(InvCore, params=invs_params)
+        seg_slow: int = seg_dict['inv_slow']
+        assert seg_slow & 1 == 0, f'seg_dict["inv_slow"]={seg_slow} has to be even.'
+        invs_0_params = dict(pinfo=pinfo, seg=seg_slow, vertical_out=False,
+                             sig_locs={'in': ng_tidx, 'pout': pd0_tidx, 'nout': nd1_tidx})
+        invs_0_master = self.new_template(InvCore, params=invs_0_params)
+        invs_1_params = dict(pinfo=pinfo, seg=seg_slow, vertical_out=False,
+                             sig_locs={'in': pg_tidx, 'pout': pd1_tidx, 'nout': nd0_tidx})
+        invs_1_master = self.new_template(InvCore, params=invs_1_params)
 
-        inv_ncols = max(invf_master.num_cols, invs_master.num_cols)
+        inv_ncols = 2 * max(invf_0_master.num_cols, invs_0_master.num_cols)
 
         hm_layer = self.conn_layer + 1
         vm_layer = hm_layer + 1
@@ -95,15 +115,21 @@ class SerDesGeneric(MOSBase):
         self.add_tap(0, vdd_list, vss_list, tile_idx=0)
         self.add_tap(0, vdd_list, vss_list, tile_idx=1)
         sup_coords = [self.grid.track_to_coord(self.conn_layer, tap_ncols >> 1)]
-
-        # clock inverters
         cur_col = tap_ncols + sub_sep
-        invf = self.add_tile(invf_master, 0, cur_col)
-        invs = self.add_tile(invs_master, 1, cur_col)
-        inv_list = [invf, invs]
+
+        # clock inverters at beginning for deserializer
+        invf_0 = self.add_tile(invf_0_master, 0, cur_col)
+        invs_0 = self.add_tile(invs_0_master, 1, cur_col)
+        cur_col += inv_ncols // 2
+        _, clk_vm_locs = self.tr_manager.place_wires(vm_layer, ['clk', 'clk', 'clk'],
+                                                     center_coord=cur_col * self.sd_pitch)
+        invf_1 = self.add_tile(invf_1_master, 0, cur_col)
+        invs_1 = self.add_tile(invs_1_master, 1, cur_col)
+        inv_list = [invf_0, invf_1, invs_0, invs_1]
+        cur_col += inv_ncols // 2
+        clk_in_idx, clk_out_idx = 0, -1
 
         # flops
-        cur_col += inv_ncols
         ff_list, fs_list = [], []
         clk_list, clkb_list = [], []
         clk_div_list, clk_divb_list = [], []
@@ -132,14 +158,7 @@ class SerDesGeneric(MOSBase):
             clk_div_list.append(clk_div_vm)
             clk_divb_list.append(fs.get_pin('clkb'))
 
-            if is_ser:
-                dslow = fs.get_pin('pin')
-                # Bring up to vm_layer
-                assert dslow.layer_id == hm_layer
-                avail_vm_tid = self.tr_manager.get_next_track_obj(clk_div_vm, 'sig', 'sig', count_rel_tracks=1)
-                dslow = self.connect_to_tracks(dslow, avail_vm_tid, min_len_mode=MinLenMode.MIDDLE)
-            else:
-                dslow = fs.get_pin('out')
+            dslow = fs.get_pin('out')
 
             # check if dslow can be routed down to row 0 for connecting to xm_layer
             if horz_slow:
@@ -149,54 +168,16 @@ class SerDesGeneric(MOSBase):
                                      f'xm_layer={xm_layer} because of collision / spacing error on vm_layer={vm_layer}')
                 dslow_list.append(dslow)
             else:
-                prefix = 'din' if is_ser else 'dout'
+                prefix = 'dout'
                 self.add_pin(f'{prefix}<{idx}>', dslow)
 
-            if is_ser:
-                d_int = self.connect_to_track_wires(ff.get_pin('pin'), fs.get_pin('out'))
-            else:
-                d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
+            d_int = self.connect_to_track_wires(fs.get_pin('pin'), ff.get_pin('out'))
             self.add_pin(f'd<{idx}>', d_int, hide=not export_nets)
 
-            if not is_ser and idx == 0:
+            if idx == 0:
                 self.reexport(ff.get_port('pin'), net_name='din', hide=False)
-            elif is_ser and idx == ratio - 1:
-                self.reexport(ff.get_port('out'), net_name='dout')
-            if idx != 0:
+            else:
                 self.connect_wires([ff.get_pin('pin'), ff_list[-2].get_pin('pout')])
-
-        # dout inverter, if it exists
-        inv_sch_params = None
-        w_vm_sig = self.tr_manager.get_width(vm_layer, 'sig')
-        if is_ser:
-            seg_inv = seg_dict.get('inv_data', 0)
-            if seg_inv % 2:
-                raise ValueError(f'Dout inverter must have even number of fingers. inv_data={seg_inv} has to be even.')
-            if seg_inv > 0:
-                # make master
-                ff_out_hm = ff_list[-1].get_pin('pout')
-                inv_params = dict(pinfo=pinfo, seg=seg_inv // 2, vertical_out=False,
-                                  sig_locs={'pin': ff_out_hm.track_id.base_index})
-                inv_master = self.new_template(InvCore, params=inv_params)
-                inv_sch_params = dict(**inv_master.sch_params)
-                inv_sch_params.update({'seg_p': seg_inv, 'seg_n': seg_inv})
-
-                # place
-                cur_col += blk_sp
-                invd0 = self.add_tile(inv_master, 0, cur_col)
-                invd1 = self.add_tile(inv_master, 1, cur_col)
-                cur_col += inv_master.num_cols
-                inv_list.extend([invd0, invd1])
-
-                # local routing
-                inv_in_hm = invd0.get_pin('pin')
-                inv_in_vm_idx = self.grid.coord_to_track(vm_layer, inv_in_hm.lower, RoundMode.LESS_EQ)
-                inv_in_vm = self.connect_to_tracks([ff_out_hm, inv_in_hm, invd1.get_pin('pin')],
-                                                   TrackID(vm_layer, inv_in_vm_idx, w_vm_sig))
-                inv_out_vm_tid = self.tr_manager.get_next_track_obj(inv_in_vm, 'sig', 'sig', count_rel_tracks=1)
-                inv_out_vm = self.connect_to_tracks([invd0.get_pin('pout'), invd0.get_pin('nout'),
-                                                     invd1.get_pin('pout'), invd1.get_pin('nout')], inv_out_vm_tid)
-                self.add_pin('doutb', inv_out_vm)
 
         # right tap
         cur_col += sub_sep
@@ -206,6 +187,7 @@ class SerDesGeneric(MOSBase):
 
         self.set_mos_size()
         xh = self.bound_box.xh
+        yh = self.bound_box.yh
 
         # --- Routing --- #
         # supplies
@@ -226,10 +208,9 @@ class SerDesGeneric(MOSBase):
         for _coord in sup_coords:
             _, _locs = self.tr_manager.place_wires(vm_layer, ['sup', 'sup'], center_coord=_coord)
             vss_tid = TrackID(vm_layer, _locs[0], w_vm_sup)
-            vss_vm_list.append(self.connect_to_tracks(vss_hm, vss_tid, min_len_mode=MinLenMode.UPPER))
+            vss_vm_list.append(self.connect_to_tracks(vss_hm, vss_tid, track_lower=0, track_upper=yh))
             vdd_tid = TrackID(vm_layer, _locs[-1], w_vm_sup)
-            vdd_vm_list.append(self.connect_to_tracks(vdd_hm, vdd_tid, track_lower=vss_vm_list[-1].lower,
-                                                      track_upper=vss_vm_list[-1].upper))
+            vdd_vm_list.append(self.connect_to_tracks(vdd_hm, vdd_tid, track_lower=0, track_upper=yh))
 
         vss0_xm = self.connect_to_tracks(vss_vm_list, TrackID(xm_layer, vss0_xm_idx, w_xm_sup))
         vss1_xm = self.connect_to_tracks(vss_vm_list, TrackID(xm_layer, vss1_xm_idx, w_xm_sup))
@@ -271,50 +252,52 @@ class SerDesGeneric(MOSBase):
                 dout_xm = self.connect_to_tracks(dslow_list[widx], xm_tid, track_upper=xh)
                 self.add_pin(f'dout<{widx}>', dout_xm)
 
-        # clkb
-        clkb_pout = invf.get_pin('pout')
-        clkb_nout = invf.get_pin('nout')
-        clkb_vm_idx = self.grid.coord_to_track(vm_layer, clkb_pout.upper, RoundMode.NEAREST)
+        # clkb_buf
         w_vm_clk = self.tr_manager.get_width(vm_layer, 'clk')
-        clkb_vm = TrackID(vm_layer, clkb_vm_idx, w_vm_clk)
-        clkb_vm = self.connect_to_tracks([clkb_pout, clkb_nout], clkb_vm)
+        clkb_vm = self.connect_to_tracks([invf_0.get_pin('pout'), invf_0.get_pin('nout'), invf_1.get_pin('nin')],
+                                         TrackID(vm_layer, clk_vm_locs[1], w_vm_clk))
         clkb_list.append(clkb_vm)
         w_xm_clk = self.tr_manager.get_width(xm_layer, 'clk')
         clkb_xm = self.connect_to_tracks(clkb_list, TrackID(xm_layer, xm_locs0[1], w_xm_clk))
-        self.add_pin('clkb', [clkb_vm, clkb_xm], hide=not export_nets)
+        self.add_pin('clkb_buf', [clkb_vm, clkb_xm], hide=not export_nets)
 
-        # clk
-        clk_vm = self.tr_manager.get_next_track_obj(clkb_vm, 'clk', 'clk', -1)
-        clk_vm = self.connect_to_tracks(invf.get_pin('in'), clk_vm)
+        # clk_buf
+        clk_vm = self.connect_to_tracks([invf_1.get_pin('pout'), invf_1.get_pin('nout')],
+                                        TrackID(vm_layer, clk_vm_locs[clk_out_idx], w_vm_clk))
         clk_list.append(clk_vm)
         clk_xm = self.connect_to_tracks(clk_list, TrackID(xm_layer, xm_locs0[-2], w_xm_clk))
-        self.add_pin('clk', [clk_vm, clk_xm])
+        self.add_pin('clk_buf', [clk_vm, clk_xm], hide=not export_nets)
 
-        # clk_divb
-        clk_divb_pout = invs.get_pin('pout')
-        clk_divb_nout = invs.get_pin('nout')
-        clk_divb_vm_idx = self.grid.coord_to_track(vm_layer, clk_divb_pout.upper, RoundMode.NEAREST)
-        clk_divb_vm = TrackID(vm_layer, clk_divb_vm_idx, w_vm_clk)
-        clk_divb_vm = self.connect_to_tracks([clk_divb_pout, clk_divb_nout], clk_divb_vm)
+        # clk
+        clk_in = self.connect_to_tracks(invf_0.get_pin('nin'), TrackID(vm_layer, clk_vm_locs[clk_in_idx], w_vm_clk),
+                                        min_len_mode=MinLenMode.MIDDLE)
+        self.add_pin('clk', clk_in)
+
+        # clk_divb_buf
+        clk_divb_vm = self.connect_to_tracks([invs_0.get_pin('pout'), invs_0.get_pin('nout'), invs_1.get_pin('nin')],
+                                             TrackID(vm_layer, clk_vm_locs[1], w_vm_clk))
         clk_divb_list.append(clk_divb_vm)
         clk_divb_xm = self.connect_to_tracks(clk_divb_list, TrackID(xm_layer, xm_locs1[-2], w_xm_clk))
-        self.add_pin('clk_divb', [clk_divb_vm, clk_divb_xm], hide=not export_nets)
+        self.add_pin('clk_divb_buf', [clk_divb_vm, clk_divb_xm], hide=not export_nets)
 
-        # clk_div
-        clk_div_vm = self.tr_manager.get_next_track_obj(clk_divb_vm, 'clk', 'clk', -1)
-        clk_div_vm = self.connect_to_tracks(invs.get_pin('in'), clk_div_vm)
+        # clk_div_buf
+        clk_div_vm = self.connect_to_tracks([invs_1.get_pin('pout'), invs_1.get_pin('nout')],
+                                            TrackID(vm_layer, clk_vm_locs[clk_out_idx], w_vm_clk))
         clk_div_list.append(clk_div_vm)
         clk_div_xm = self.connect_to_tracks(clk_div_list, TrackID(xm_layer, xm_locs1[1], w_xm_clk))
-        self.add_pin('clk_div', [clk_div_vm, clk_div_xm])
+        self.add_pin('clk_div_buf', [clk_div_vm, clk_div_xm], hide=not export_nets)
+
+        # clk_div
+        clk_div = self.connect_to_tracks(invs_0.get_pin('nin'), TrackID(vm_layer, clk_vm_locs[clk_in_idx], w_vm_clk),
+                                         min_len_mode=MinLenMode.MIDDLE)
+        self.add_pin('clk_div', clk_div)
 
         # get schematic parameters
         self.sch_params = dict(
             flop_fast=ff_master.sch_params,
             flop_slow=fs_master.sch_params,
-            inv_fast=invf_master.sch_params,
-            inv_slow=invs_master.sch_params,
+            inv_fast=dict(inv_params=[invf_0_master.sch_params, invf_1_master.sch_params], dual_output=True),
+            inv_slow=dict(inv_params=[invs_0_master.sch_params, invs_1_master.sch_params], dual_output=True),
             ratio=ratio,
             export_nets=export_nets,
-            is_ser=is_ser,
-            inv_data=inv_sch_params,
         )

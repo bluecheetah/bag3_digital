@@ -1,9 +1,9 @@
 lib_name: bag3_digital
-cell_name: serdes_generic
+cell_name: des1toN
 view_name: schematic
 bbox:
-  - -881
-  - -500
+  - -921
+  - -210
   - 108
   - 420
 terminals:
@@ -15,13 +15,13 @@ terminals:
           cell_name: iopin
           view_name: symbolr
           xform:
-            - -750
+            - -790
             - 300
             - R0
           bbox:
-            - -811
+            - -851
             - 274
-            - -740
+            - -780
             - 310
           connections:
             {}
@@ -33,7 +33,7 @@ terminals:
           purpose: 237
           net: ""
           origin:
-            - -775
+            - -815
             - 300
           alignment: 7
           orient: R0
@@ -54,13 +54,13 @@ terminals:
           cell_name: iopin
           view_name: symbolr
           xform:
-            - -750
+            - -790
             - 120
             - R0
           bbox:
-            - -811
+            - -851
             - 94
-            - -740
+            - -780
             - 130
           connections:
             {}
@@ -72,7 +72,7 @@ terminals:
           purpose: 237
           net: ""
           origin:
-            - -775
+            - -815
             - 120
           alignment: 7
           orient: R0
@@ -93,13 +93,13 @@ terminals:
           cell_name: ipin
           view_name: symbol
           xform:
-            - -800
+            - -840
             - 210
             - R0
           bbox:
-            - -857
+            - -897
             - 184
-            - -800
+            - -840
             - 220
           connections:
             {}
@@ -111,7 +111,7 @@ terminals:
           purpose: 237
           net: ""
           origin:
-            - -830
+            - -870
             - 210
           alignment: 7
           orient: R0
@@ -132,13 +132,13 @@ terminals:
           cell_name: ipin
           view_name: symbol
           xform:
-            - -800
+            - -840
             - 170
             - R0
           bbox:
-            - -857
+            - -897
             - 144
-            - -800
+            - -840
             - 180
           connections:
             {}
@@ -150,7 +150,7 @@ terminals:
           purpose: 237
           net: ""
           origin:
-            - -830
+            - -870
             - 170
           alignment: 7
           orient: R0
@@ -171,13 +171,13 @@ terminals:
           cell_name: ipin
           view_name: symbol
           xform:
-            - -800
+            - -840
             - 250
             - R0
           bbox:
-            - -857
+            - -897
             - 224
-            - -800
+            - -840
             - 260
           connections:
             {}
@@ -189,7 +189,7 @@ terminals:
           purpose: 237
           net: ""
           origin:
-            - -830
+            - -870
             - 250
           alignment: 7
           orient: R0
@@ -210,13 +210,13 @@ terminals:
           cell_name: opin
           view_name: symbol
           xform:
-            - -710
+            - -750
             - 250
             - R0
           bbox:
-            - -710
+            - -750
             - 224
-            - -653
+            - -693
             - 260
           connections:
             {}
@@ -228,7 +228,7 @@ terminals:
           purpose: 237
           net: ""
           origin:
-            - -685
+            - -725
             - 250
           alignment: 1
           orient: R0
@@ -330,7 +330,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clk_div
+      net: clk_div_buf
       points:
         -
           - -210
@@ -342,7 +342,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: clk_div
+      net: clk_div_buf
       origin:
         - -174
         - 267
@@ -353,7 +353,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clk_div
+      text: clk_div_buf
   -
     - 5
     - layer: 228
@@ -470,7 +470,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clk
+      net: clk_buf
       points:
         -
           - -210
@@ -482,7 +482,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: clk
+      net: clk_buf
       origin:
         - -174
         - -63
@@ -493,7 +493,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clk
+      text: clk_buf
   -
     - 5
     - layer: 228
@@ -529,10 +529,10 @@ shapes:
       net: VSS
       points:
         -
-          - -430
+          - -470
           - -190
         -
-          - -430
+          - -470
           - -150
   -
     - 7
@@ -540,7 +540,7 @@ shapes:
       purpose: 237
       net: VSS
       origin:
-        - -437
+        - -477
         - -154
       alignment: 8
       orient: R90
@@ -557,10 +557,10 @@ shapes:
       net: VDD
       points:
         -
-          - -430
+          - -470
           - 10
         -
-          - -430
+          - -470
           - 50
   -
     - 7
@@ -568,7 +568,7 @@ shapes:
       purpose: 237
       net: VDD
       origin:
-        - -437
+        - -477
         - 14
       alignment: 2
       orient: R90
@@ -582,22 +582,22 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clkb
+      net: clkb_buf
       points:
         -
-          - -330
-          - -70
+          - -350
+          - -90
         -
-          - -290
-          - -70
+          - -310
+          - -90
   -
     - 7
     - layer: 228
       purpose: 237
-      net: clkb
+      net: clkb_buf
       origin:
-        - -326
-        - -63
+        - -346
+        - -83
       alignment: 2
       orient: R0
       font: 5
@@ -605,7 +605,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clkb
+      text: clkb_buf
   -
     - 5
     - layer: 228
@@ -613,10 +613,10 @@ shapes:
       net: clk
       points:
         -
-          - -570
+          - -610
           - -70
         -
-          - -530
+          - -570
           - -70
   -
     - 7
@@ -624,7 +624,7 @@ shapes:
       purpose: 237
       net: clk
       origin:
-        - -534
+        - -574
         - -63
       alignment: 8
       orient: R0
@@ -641,10 +641,10 @@ shapes:
       net: VSS
       points:
         -
-          - -430
+          - -470
           - 140
         -
-          - -430
+          - -470
           - 180
   -
     - 7
@@ -652,7 +652,7 @@ shapes:
       purpose: 237
       net: VSS
       origin:
-        - -437
+        - -477
         - 176
       alignment: 8
       orient: R90
@@ -669,10 +669,10 @@ shapes:
       net: VDD
       points:
         -
-          - -430
+          - -470
           - 340
         -
-          - -430
+          - -470
           - 380
   -
     - 7
@@ -680,7 +680,7 @@ shapes:
       purpose: 237
       net: VDD
       origin:
-        - -437
+        - -477
         - 344
       alignment: 2
       orient: R90
@@ -694,30 +694,26 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clk_divb
+      net: clk_divb_buf
       points:
         -
-          - -330
+          - -350
+          - 240
+        -
+          - -310
+          - 240
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk_div_buf
+      points:
+        -
+          - -350
           - 260
         -
-          - -290
+          - -310
           - 260
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: clk_divb
-      origin:
-        - -326
-        - 267
-      alignment: 2
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: clk_divb
   -
     - 5
     - layer: 228
@@ -725,10 +721,10 @@ shapes:
       net: clk_div
       points:
         -
-          - -570
+          - -610
           - 260
         -
-          - -530
+          - -570
           - 260
   -
     - 7
@@ -736,7 +732,7 @@ shapes:
       purpose: 237
       net: clk_div
       origin:
-        - -534
+        - -574
         - 267
       alignment: 8
       orient: R0
@@ -747,109 +743,13 @@ shapes:
       drafting: true
       text: clk_div
   -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: dout
-      points:
-        -
-          - -570
-          - -380
-        -
-          - -530
-          - -380
-  -
     - 7
     - layer: 228
       purpose: 237
-      net: dout
+      net: clk_divb_buf
       origin:
-        - -534
-        - -373
-      alignment: 8
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: dout
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - -430
-          - -300
-        -
-          - -430
-          - -260
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: VDD
-      origin:
-        - -437
-        - -296
-      alignment: 2
-      orient: R90
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VDD
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - -430
-          - -500
-        -
-          - -430
-          - -460
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: VSS
-      origin:
-        - -437
-        - -464
-      alignment: 8
-      orient: R90
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VSS
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: doutb
-      points:
-        -
-          - -330
-          - -380
-        -
-          - -290
-          - -380
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: doutb
-      origin:
-        - -326
-        - -373
+        - -346
+        - 247
       alignment: 2
       orient: R0
       font: 5
@@ -857,7 +757,51 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: doutb
+      text: clk_divb_buf
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk_div_buf
+      origin:
+        - -346
+        - 267
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_div_buf
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk_buf
+      points:
+        -
+          - -350
+          - -70
+        -
+          - -310
+          - -70
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk_buf
+      origin:
+        - -346
+        - -63
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_buf
 instances:
   XFF:
     lib_name: bag3_digital
@@ -875,7 +819,7 @@ instances:
     connections:
       VDD: VDD
       VSS: VSS
-      clk: clk
+      clk: clk_buf
       in: din
       out: d
     params:
@@ -897,94 +841,75 @@ instances:
     connections:
       VDD: VDD
       VSS: VSS
-      clk: clk_div
+      clk: clk_div_buf
       in: d
       out: dout
     params:
       {}
     is_primitive: false
-  XINV:
-    lib_name: bag3_digital
-    cell_name: inv
-    view_name: symbol
-    xform:
-      - -530
-      - -460
-      - R0
-    bbox:
-      - -534
-      - -464
-      - -326
-      - -296
-    connections:
-      VDD: VDD
-      VSS: VSS
-      in: dout
-      out: doutb
-    params:
-      {}
-    is_primitive: false
   XINVC:
     lib_name: bag3_digital
-    cell_name: inv
+    cell_name: inv_chain
     view_name: symbol
     xform:
-      - -530
+      - -570
       - -150
       - R0
     bbox:
-      - -534
+      - -574
       - -154
-      - -326
+      - -262
       - 14
     connections:
       VDD: VDD
       VSS: VSS
       in: clk
-      out: clkb
+      out: clk_buf
+      outb: clkb_buf
     params:
       {}
     is_primitive: false
   XINVD:
     lib_name: bag3_digital
-    cell_name: inv
+    cell_name: inv_chain
     view_name: symbol
     xform:
-      - -530
+      - -570
       - 180
       - R0
     bbox:
-      - -534
+      - -574
       - 176
-      - -326
+      - -262
       - 344
     connections:
       VDD: VDD
       VSS: VSS
       in: clk_div
-      out: clk_divb
+      out: clk_div_buf
+      outb: clk_divb_buf
     params:
       {}
     is_primitive: false
 props:
   connectivityLastUpdated:
     - 0
-    - 2029
+    - 3025
   instance#:
     - 0
     - 3
   lastSchematicExtraction:
     - 4
-    - time_val: 1625982346
+    - time_val: 1627447899
   net#:
     - 0
-    - 2
+    - 0
   pin#:
     - 0
     - 6
   schGeometryLastUpdated:
     - 0
-    - 2029
+    - 3025
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -994,10 +919,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 2029
+    - 3025
   _dbvCvTimeStamp:
     - 0
-    - 2029
+    - 3025
   cdbRevision:
     - 0
     - 227612

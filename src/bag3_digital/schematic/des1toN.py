@@ -30,7 +30,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Mapping, Any, Optional
+from typing import Mapping, Any
 
 import pkg_resources
 from pathlib import Path
@@ -43,15 +43,15 @@ from pybag.enum import TermType
 
 
 # noinspection PyPep8Naming
-class bag3_digital__serdes_generic(Module):
-    """Module for library bag3_digital cell serdes_generic.
+class bag3_digital__des1toN(Module):
+    """Module for library bag3_digital cell des1toN.
 
     Fill in high level description here.
     """
 
     yaml_file = pkg_resources.resource_filename(__name__,
                                                 str(Path('netlist_info',
-                                                         'serdes_generic.yaml')))
+                                                         'des1toN.yaml')))
 
     def __init__(self, database: ModuleDB, params: Param, **kwargs: Any) -> None:
         Module.__init__(self, self.yaml_file, database, params, **kwargs)
@@ -68,67 +68,59 @@ class bag3_digital__serdes_generic(Module):
         return dict(
             flop_fast='Parameters for flop with fast clock',
             flop_slow='Parameters for flop with divided slow clock',
-            inv_fast='Parameters for fast clock inverter',
-            inv_slow='Parameters for divided slow clock inverter',
-            inv_data='Parameters for data-out inverter',
+            inv_fast='Parameters for fast clock inverter chain',
+            inv_slow='Parameters for divided slow clock inverter chain',
             ratio='Number of serialized inputs/deserialized outputs',
-            is_ser='True to make this a serializer. Otherwise, deserializer',
             export_nets='True to export intermediate nets; False by default',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
-        return dict(inv_data=None, export_nets=False)
+        return dict(export_nets=False)
 
     def get_master_basename(self) -> str:
         ratio: int = self.params['ratio']
-        is_ser: bool = self.params['is_ser']
-        if is_ser:
-            return f'ser_{ratio}to1'
         return f'des_1to{ratio}'
 
     def design(self, flop_fast: Mapping[str, Any], flop_slow: Mapping[str, Any], inv_fast: Mapping[str, Any],
-               inv_slow: Mapping[str, Any], ratio: int, is_ser: bool, export_nets: bool,
-               inv_data: Optional[Mapping[str, Any]]) -> None:
+               inv_slow: Mapping[str, Any], ratio: int, export_nets: bool) -> None:
+        """To be overridden by subclasses to design this module.
 
+        This method should fill in values for all parameters in
+        self.parameters.  To design instances of this module, you can
+        call their design() method or any other ways you coded.
+
+        To modify schematic structure, call:
+
+        rename_pin()
+        delete_instance()
+        replace_instance_master()
+        reconnect_instance_terminal()
+        restore_instance()
+        array_instance()
+        """
         self.instances['XFF'].design(**flop_fast)
-        self.reconnect_instance_terminal('XFF', 'clkb', 'clkb')
+        self.reconnect_instance_terminal('XFF', 'clkb', 'clkb_buf')
         self.instances['XFS'].design(**flop_slow)
-        self.reconnect_instance_terminal('XFS', 'clkb', 'clk_divb')
+        self.reconnect_instance_terminal('XFS', 'clkb', 'clk_divb_buf')
 
         self.instances['XINVC'].design(**inv_fast)
         self.instances['XINVD'].design(**inv_slow)
-
-        if inv_data:
-            assert is_ser, 'data-out inverter is supported for serializer only, not deserializer.'
-            self.instances['XINV'].design(**inv_data)
-            self.add_pin('doutb', TermType.output)
-        else:
-            self.remove_instance('XINV')
 
         if ratio < 2:
             raise ValueError(f'ratio={ratio} has to be greater than 1.')
 
         suf = f'<{ratio - 1}:0>'
-        if is_ser:
-            self.rename_pin('din', 'din' + suf)
-        else:
-            self.rename_pin('dout', 'dout' + suf)
+        self.rename_pin('dout', 'dout' + suf)
 
         fast_list, slow_list = [], []
         for idx in range(ratio):
-            if is_ser:
-                fast_list.append((f'XFF{idx}', [('out', f'd<{idx + 1}>' if idx != ratio - 1 else 'dout'),
-                                                ('in', f'd<{idx}>')]))
-                slow_list.append((f'XFS{idx}', [('out', f'd<{idx}>'), ('in', f'din<{idx}>')]))
-            else:
-                fast_list.append((f'XFF{idx}', [('out', f'd<{idx}>'), ('in', f'd<{idx - 1}>' if idx else 'din')]))
-                slow_list.append((f'XFS{idx}', [('out', f'dout<{idx}>'), ('in', f'd<{idx}>')]))
+            fast_list.append((f'XFF{idx}', [('out', f'd<{idx}>'), ('in', f'd<{idx - 1}>' if idx else 'din')]))
+            slow_list.append((f'XFS{idx}', [('out', f'dout<{idx}>'), ('in', f'd<{idx}>')]))
 
         self.array_instance('XFF', inst_term_list=fast_list)
         self.array_instance('XFS', inst_term_list=slow_list)
 
         if export_nets:
-            self.add_pin('d' + suf, TermType.output)
-            self.add_pin('clkb', TermType.output)
-            self.add_pin('clk_divb', TermType.output)
+            for pin in ['d' + suf, 'clkb_buf', 'clk_buf', 'clk_divb_buf', 'clk_div_buf']:
+                self.add_pin(pin, TermType.output)

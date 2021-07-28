@@ -15,7 +15,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Dict, Any
+from typing import Mapping, Any, Union
 
 import pkg_resources
 from pathlib import Path
@@ -24,6 +24,8 @@ from bag.design.module import Module
 from bag.design.database import ModuleDB
 from bag.util.immutable import Param
 from pybag.enum import TermType
+
+from ..layout.stdcells.util import RstType
 
 
 # noinspection PyPep8Naming
@@ -41,21 +43,28 @@ class bag3_digital__rst_flop(Module):
         Module.__init__(self, self.yaml_file, database, params, **kwargs)
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
 
         return dict(
             m_params='Master Parameters',
             s_params='Slave Parameters',
             inv_params='Inverter Params',
+            rst_type='SET or RESET; RESET by default',
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
-        return dict(
-            inv_params=None,
-        )
+    def get_default_param_values(cls) -> Mapping[str, Any]:
+        return dict(rst_type=RstType.RESET, inv_params=None)
 
-    def design(self, m_params: Param, s_params: Param, inv_params: Param) -> None:
+    def get_master_basename(self) -> str:
+        rst_type: Union[str, RstType] = self.params['rst_type']
+        if isinstance(rst_type, str):
+            rst_type = RstType[rst_type]
+        if rst_type is RstType.SET:
+            return 'set_flop'
+        return 'rst_flop'
+
+    def design(self, m_params: Param, s_params: Param, inv_params: Param, rst_type: Union[str, RstType]) -> None:
         self.instances['XM'].design(**m_params)
         self.instances['XS'].design(**s_params)
         if inv_params:
@@ -63,3 +72,10 @@ class bag3_digital__rst_flop(Module):
         else:
             self.add_pin('clkb', TermType.input)
             self.delete_instance('XB')
+
+        if isinstance(rst_type, str):
+            rst_type = RstType[rst_type]
+        if rst_type is RstType.SET:
+            self.rename_pin('rst', 'setb')
+            self.reconnect_instance_terminal('XM', 'setb', 'setb')
+            self.reconnect_instance_terminal('XS', 'setb', 'setb')

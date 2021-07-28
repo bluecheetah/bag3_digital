@@ -1,5 +1,5 @@
 lib_name: bag3_digital
-cell_name: serdes_generic
+cell_name: des1toN
 view_name: symbol
 bbox:
   - -4
@@ -316,7 +316,7 @@ props:
     - time_val: 1615012993
   partName:
     - 3
-    - serdes_generic
+    - des1toN
   pin#:
     - 0
     - 6

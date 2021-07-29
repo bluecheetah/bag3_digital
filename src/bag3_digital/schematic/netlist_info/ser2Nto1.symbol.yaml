@@ -14,9 +14,9 @@ terminals:
         purpose: 4294967295
         net: ""
         bbox:
-          - 136
+          - 156
           - 256
-          - 144
+          - 164
           - 264
     stype: 1
     ttype: 2
@@ -27,9 +27,9 @@ terminals:
         purpose: 4294967295
         net: ""
         bbox:
-          - 136
+          - 156
           - -4
-          - 144
+          - 164
           - 4
     stype: 2
     ttype: 2
@@ -98,6 +98,19 @@ terminals:
           - 184
     stype: 0
     ttype: 1
+  doutb:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 296
+          - 156
+          - 304
+          - 164
+    stype: 0
+    ttype: 1
   rst:
     obj:
       - 0
@@ -148,10 +161,10 @@ shapes:
       points:
         -
           - 0
-          - 180
+          - 120
         -
           - 40
-          - 180
+          - 120
   -
     - 7
     - layer: 229
@@ -176,10 +189,10 @@ shapes:
       points:
         -
           - 0
-          - 100
+          - 140
         -
           - 40
-          - 100
+          - 140
   -
     - 7
     - layer: 229
@@ -204,10 +217,10 @@ shapes:
       points:
         -
           - 0
-          - 120
+          - 100
         -
           - 40
-          - 120
+          - 100
   -
     - 7
     - layer: 229
@@ -232,10 +245,10 @@ shapes:
       points:
         -
           - 0
-          - 140
+          - 180
         -
           - 40
-          - 140
+          - 180
   -
     - 7
     - layer: 229
@@ -252,6 +265,34 @@ shapes:
       visible: true
       drafting: true
       text: clk
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 300
+          - 160
+        -
+          - 260
+          - 160
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 294
+        - 170
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: doutb
   -
     - 5
     - layer: 231
@@ -287,10 +328,10 @@ shapes:
       net: ""
       points:
         -
-          - 140
+          - 160
           - 260
         -
-          - 140
+          - 160
           - 220
   -
     - 7
@@ -298,7 +339,7 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 130
+        - 150
         - 254
       alignment: 1
       orient: R270
@@ -315,10 +356,10 @@ shapes:
       net: ""
       points:
         -
-          - 140
+          - 160
           - 0
         -
-          - 140
+          - 160
           - 40
   -
     - 7
@@ -326,7 +367,7 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 130
+        - 150
         - 6
       alignment: 7
       orient: R270
@@ -352,7 +393,7 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 140
+        - 160
         - 230
       alignment: 1
       orient: R0
@@ -369,7 +410,7 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 90
+        - 95
         - 215
       alignment: 4
       orient: R0
@@ -378,7 +419,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: "[@cellName]"
+      text: "[@celltName]"
       evaluator: cdsNLPEvalText
   -
     - 0
@@ -395,27 +436,27 @@ instances:
 props:
   interfaceLastChanged:
     - 4
-    - time_val: 1627450357
+    - time_val: 1627494210
   partName:
     - 3
     - ser2Nto1
   pin#:
     - 0
-    - 8
+    - 9
   portOrder:
     - 5
     - name: ILList
-      bin_val: ("dout" "VDD" "VSS" "clk" "clk_div" "clkb" "din" "rst")
+      bin_val: ("dout" "doutb" "VDD" "VSS" "clk" "clk_div" "clkb" "din" "rst")
   vendorName:
     - 3
     - ""
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 210
+    - 215
   _dbvCvTimeStamp:
     - 0
-    - 210
+    - 215
   cdbRevision:
     - 0
     - 227612

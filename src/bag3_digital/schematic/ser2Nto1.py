@@ -30,7 +30,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Mapping, Any
+from typing import Mapping, Any, Optional
 
 import pkg_resources
 from pathlib import Path
@@ -68,18 +68,20 @@ class bag3_digital__ser2Nto1(Module):
         return dict(
             ser='Parameters for each serNto1',
             tinv='Parameters for each inv_tristate',
+            inv='Optional parameters for dout inverter',
             export_nets='True to export intermediate nets; False by default',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
-        return dict(export_nets=False)
+        return dict(export_nets=False, inv=None)
 
     def get_master_basename(self) -> str:
         ratio: int = self.params['ser']['ratio']
         return f'ser_{2 * ratio}to1'
 
-    def design(self, ser: Mapping[str, Any], tinv: Mapping[str, Any], export_nets: bool) -> None:
+    def design(self, ser: Mapping[str, Any], tinv: Mapping[str, Any], inv: Optional[Mapping[str, Any]],
+               export_nets: bool) -> None:
         """To be overridden by subclasses to design this module.
 
         This method should fill in values for all parameters in
@@ -102,6 +104,13 @@ class bag3_digital__ser2Nto1(Module):
         # current summer
         self.instances['XCS'].design(nin=2)
 
+        # dout inverter
+        if inv:
+            self.instances['XINV'].design(**inv)
+        else:
+            self.remove_instance('XINV')
+            self.remove_pin('doutb')
+
         # serNto1
         self.instances['XSER0'].design(**ser)
         self.instances['XSER1'].design(**ser)
@@ -113,4 +122,4 @@ class bag3_digital__ser2Nto1(Module):
         self.reconnect_instance_terminal('XSER1', f'din{suf}', f'din<{2 * ratio - 1}:1:2>')
 
         if export_nets:
-            self.add_pin('doutb<1:0>', TermType.output)
+            self.add_pin('ser_outb<1:0>', TermType.output)

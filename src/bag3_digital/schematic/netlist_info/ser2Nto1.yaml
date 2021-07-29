@@ -4,7 +4,7 @@ view_name: schematic
 bbox:
   - -1261
   - -400
-  - 358
+  - 607
   - 260
 terminals:
   VDD:
@@ -280,6 +280,45 @@ terminals:
           format: 1
     stype: 0
     ttype: 1
+  doutb:
+    obj:
+      - 1
+      - inst:
+          lib_name: basic
+          cell_name: opin
+          view_name: symbol
+          xform:
+            - -1040
+            - 50
+            - R0
+          bbox:
+            - -1040
+            - 24
+            - -983
+            - 60
+          connections:
+            {}
+          params:
+            {}
+          is_primitive: true
+        attr:
+          layer: 229
+          purpose: 237
+          net: ""
+          origin:
+            - -1015
+            - 50
+          alignment: 1
+          orient: R0
+          font: 5
+          height: 10
+          overbar: false
+          visible: true
+          drafting: true
+          attr_type: 0
+          format: 1
+    stype: 0
+    ttype: 1
   rst:
     obj:
       - 1
@@ -380,19 +419,19 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: doutb<0>
+      net: VDD
       points:
         -
-          - -420
-          - -200
+          - 460
+          - 60
         -
-          - -380
-          - -200
+          - 460
+          - 100
   -
     - 7
     - layer: 228
       purpose: 237
-      net: doutb<0>
+      net: ser_outb<0>
       origin:
         - -416
         - -193
@@ -403,7 +442,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: doutb<0>
+      text: ser_outb<0>
   -
     - 5
     - layer: 228
@@ -576,19 +615,19 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: doutb<1>
+      net: VSS
       points:
         -
-          - -420
-          - 140
+          - 460
+          - -140
         -
-          - -380
-          - 140
+          - 460
+          - -100
   -
     - 7
     - layer: 228
       purpose: 237
-      net: doutb<1>
+      net: ser_outb<1>
       origin:
         - -416
         - 147
@@ -599,7 +638,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: doutb<1>
+      text: ser_outb<1>
   -
     - 5
     - layer: 228
@@ -856,10 +895,10 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: doutb<1>
+      net: ser_outb<1>
       points:
         -
-          - -330
+          - -420
           - 140
         -
           - -290
@@ -868,18 +907,18 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: doutb<1>
+      net: VSS
       origin:
-        - -294
-        - 147
+        - 453
+        - -104
       alignment: 8
-      orient: R0
+      orient: R90
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: doutb<1>
+      text: VSS
   -
     - 5
     - layer: 228
@@ -1024,10 +1063,10 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: doutb<0>
+      net: ser_outb<0>
       points:
         -
-          - -330
+          - -420
           - -200
         -
           - -290
@@ -1036,18 +1075,18 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: doutb<0>
+      net: VDD
       origin:
-        - -294
-        - -193
-      alignment: 8
-      orient: R0
+        - 453
+        - 64
+      alignment: 2
+      orient: R90
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: doutb<0>
+      text: VDD
   -
     - 5
     - layer: 228
@@ -1058,7 +1097,7 @@ shapes:
           - 280
           - -20
         -
-          - 320
+          - 360
           - -20
   -
     - 7
@@ -1108,6 +1147,34 @@ shapes:
       visible: true
       drafting: true
       text: tinv_out<1:0>
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: doutb
+      points:
+        -
+          - 560
+          - -20
+        -
+          - 600
+          - -20
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: doutb
+      origin:
+        - 564
+        - -13
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: doutb
 instances:
   XCS:
     lib_name: xbase
@@ -1125,6 +1192,27 @@ instances:
     connections:
       in<1:0>: tinv_out<1:0>
       out: dout
+    params:
+      {}
+    is_primitive: false
+  XINV:
+    lib_name: bag3_digital
+    cell_name: inv
+    view_name: symbol
+    xform:
+      - 360
+      - -100
+      - R0
+    bbox:
+      - 356
+      - -104
+      - 564
+      - 64
+    connections:
+      VDD: VDD
+      VSS: VSS
+      in: dout
+      out: doutb
     params:
       {}
     is_primitive: false
@@ -1147,7 +1235,7 @@ instances:
       clk: clk
       clk_div: clk_div
       din: din
-      doutb: doutb<0>
+      doutb: ser_outb<0>
       rst: rst
     params:
       {}
@@ -1171,7 +1259,7 @@ instances:
       clk: clkb
       clk_div: clk_div
       din: din
-      doutb: doutb<1>
+      doutb: ser_outb<1>
       rst: rst
     params:
       {}
@@ -1194,7 +1282,7 @@ instances:
       VSS: VSS
       en: clkb
       enb: clk
-      in: doutb<0>
+      in: ser_outb<0>
       out: tinv_out<0>
     params:
       {}
@@ -1217,7 +1305,7 @@ instances:
       VSS: VSS
       en: clk
       enb: clkb
-      in: doutb<1>
+      in: ser_outb<1>
       out: tinv_out<1>
     params:
       {}
@@ -1225,22 +1313,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 1836
+    - 3894
   instance#:
     - 0
     - 2
   lastSchematicExtraction:
     - 4
-    - time_val: 1627450462
+    - time_val: 1627494324
   net#:
     - 0
     - 0
   pin#:
     - 0
-    - 8
+    - 9
   schGeometryLastUpdated:
     - 0
-    - 1836
+    - 3894
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1250,10 +1338,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 1836
+    - 3894
   _dbvCvTimeStamp:
     - 0
-    - 1836
+    - 3894
   cdbRevision:
     - 0
     - 227612

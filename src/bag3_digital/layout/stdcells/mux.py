@@ -281,6 +281,10 @@ class Mux2to1Core(MOSBase):
         MOSBase.__init__(self, temp_db, params, **kwargs)
 
     @classmethod
+    def get_schematic_class(cls) -> Optional[Type[Module]]:
+        return bag3_digital__mux2to1_matched
+
+    @classmethod
     def get_params_info(cls) -> Dict[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
@@ -339,9 +343,9 @@ class Mux2to1Core(MOSBase):
         in0_tidx = sig_locs.get('nin0', self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig',
                                                              wire_idx=1))
         in1_tidx = sig_locs.get('pin1', self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig',
-                                                             wire_idx=1))
+                                                             wire_idx=2))
         enb_tidx = sig_locs.get('penb', self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig',
-                                                             wire_idx=0))
+                                                             wire_idx=1))
         tristate0_params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p,
                                 ridx_n=ridx_n, vertical_out=False,
                                 sig_locs={'nen': en_tidx, 'nin': in0_tidx, 'pen': enb_tidx})
@@ -456,6 +460,6 @@ class Mux2to1Core(MOSBase):
         self.reexport(out_inv.get_port('pout'), label='out:', hide=vertical_out)
         self.reexport(out_inv.get_port('nout'), label='out:', hide=vertical_out)
 
-        self.sch_params = dict(sel_inv=sel_inv_master.sch_params,
-                               out_inv=out_inv_master.sch_params,
-                               tristate=tristate0_master.sch_params)
+        self.sch_params = dict(sel_params=sel_inv_master.sch_params,
+                               inv_params=out_inv_master.sch_params,
+                               tri_params=tristate0_master.sch_params)

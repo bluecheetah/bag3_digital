@@ -15,7 +15,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import pkg_resources
 from pathlib import Path
@@ -43,10 +43,24 @@ class bag3_digital__mux2to1_matched(Module):
     def get_params_info(cls) -> Dict[str, str]:
         return dict(
             inv_params='Output inverter parameters',
-            tri_params='Tristate inverter parameters'
+            tri_params='Tristate inverter parameters',
+            sel_params='Select inverter params',
         )
 
-    def design(self, inv_params: Param, tri_params: Param) -> None:
+    @classmethod
+    def get_default_param_values(cls):
+        return dict(
+            sel_params=None,
+        )
+
+    def design(self, inv_params: Param, tri_params: Param, sel_params: Optional[Param]) -> None:
         self.instances['XPASS<1:0>'].design(**tri_params)
         self.instances['XBUF'].design(**inv_params)
         self.instances['XSUM'].design(nin=2)
+
+        if sel_params:
+            self.instances['XSEL'].design(**sel_params)
+            self.remove_pin('selb')
+        else:
+            self.remove_instance('XSEL')
+

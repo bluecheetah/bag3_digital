@@ -46,17 +46,20 @@ class SerNto1Meas(MeasurementManager):
         ser_ratio: int = self.specs['ser_ratio']
         _suf = f'<{ser_ratio - 1}:0>'
         out_pin: str = self.specs['out_pin']
-
-        save_outputs = [f'din{_suf}', 'clk', 'clk_div', 'rst', out_pin, f'd{_suf}', f'p{_suf}', 'clk_buf',
-                        'clkb_buf', 'clk_div_buf', 'clk_divb_buf', 'p0_buf']
+        clkb_pin: bool = self.specs['clkb_pin']
+        save_outputs_specs: Sequence[str] = self.specs['save_outputs']
 
         # harnesses
         if harnesses:
             raise NotImplementedError
         else:
             clk_i = 'clk'
+            clkb_i = 'clkb'
             clk_div_i = 'clk_div'
             harnesses_list = []
+
+        save_outputs = [f'din{_suf}', clk_i, clk_div_i, 'rst', out_pin]
+        save_outputs.extend(save_outputs_specs)
 
         # create load
         load_list = [dict(pin=out_pin, type='cap', value='c_load')]
@@ -75,6 +78,11 @@ class SerNto1Meas(MeasurementManager):
         pulse_list = [dict(pin=clk_div_i, tper=f't_per*{ser_ratio}', tpw=f't_per*{ser_ratio}/2', trf='t_rf', td='t_d')]
         # sinusoidal clk
         load_list.append(dict(pin=clk_i, type='vsin', value=dict(vo='v_VDD/2', va='v_VDD/2', freq='1/t_per', td='t_d')))
+        if clkb_pin:
+            # sinusoidal clkb
+            load_list.append(dict(pin=clkb_i, type='vsin', value=dict(vo='v_VDD/2', va='v_VDD/2', freq='1/t_per',
+                                                                      td='t_d', sinephase='-180')))
+            save_outputs.append(clkb_i)
 
         # synchronous rst
         pulse_list.append(dict(pin='rst', tper='t_sim', tpw='t_d', trf='t_rf', td=0))

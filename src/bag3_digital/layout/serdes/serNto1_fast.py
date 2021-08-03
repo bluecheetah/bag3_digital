@@ -414,12 +414,6 @@ class SerNto1Fast(MOSBase):
         p0_xm = self.connect_to_tracks(p0_list, TrackID(xm_layer, xm_locs0[2], w_clk_xm))
         self.connect_up(p0_list, p0_xm, xxm_locs0[2], 'sig', MinLenMode.UPPER)
 
-        # reset
-        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
-        self.connect_wires(rst_hm_list)
-        self.connect_to_tracks(rst_vm_list, TrackID(xm_layer, xm_locs0[-3], w_sig_xm))
-        self.add_pin('rst', rst_vm_list[-1])
-
         # p0_buf and p0b_buf
         en_xm0 = self.connect_to_tracks(en_list[-1], TrackID(xm_layer, xm_locs0[2], w_clk_xm),
                                         min_len_mode=MinLenMode.UPPER)
@@ -437,6 +431,14 @@ class SerNto1Fast(MOSBase):
         enb_ym_tid = self.tr_manager.get_next_track_obj(clk_dict1[ym_layer][-2], 'sig', 'clk', -1)
         self.connect_to_tracks([enb_xm0, enb_xm1, enb_dict[xxm_layer]], enb_ym_tid)
         self.add_pin('p0b_buf_ym', enb_dict[ym_layer], hide=True)
+
+        # reset
+        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
+        self.connect_wires(rst_hm_list)
+        rst_xm = self.connect_to_tracks(rst_vm_list, TrackID(xm_layer, xm_locs0[-3], w_sig_xm))
+        rst_ym_tid = self.tr_manager.get_next_track_obj(en_ym_tid, 'clk', 'sig', 1)
+        rst_ym = self.connect_to_tracks(rst_xm, rst_ym_tid, min_len_mode=MinLenMode.MIDDLE)
+        self.add_pin('rst', rst_ym)
 
         # output
         dout = self.connect_to_tracks(dout_vm, TrackID(xm_layer, xm_locs1[2], w_clk_xm), min_len_mode=MinLenMode.UPPER)

@@ -4,6 +4,8 @@ from bag.util.immutable import Param
 from bag.design.module import Module
 from bag.layout.template import TemplateDB
 
+from pybag.enum import MinLenMode
+
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 from xbase.layout.enum import MOSWireType
 
@@ -88,23 +90,28 @@ class ResetSync(MOSBase):
             raise ValueError(f'Unknown reset_priority={reset_priority}. Use "high" or "low".')
 
         # dint
-        self.connect_to_track_wires(ff1.get_pin('nin'), ff0.get_pin('out'))
+        ff0_out = ff0.get_pin('out')
+        self.connect_to_track_wires(ff1.get_pin('nin'), ff0_out)
 
         # internal rstb
         self.connect_to_track_wires(buf.get_pin('in'), ff1.get_pin('out'))
 
         # rst_async
-        rst = self.connect_wires([ff0.get_pin('prst'), ff1.get_pin('prst')])[0]
-        self.add_pin('rst_async', rst)
+        rst_hm = self.connect_wires([ff0.get_pin('prst'), ff1.get_pin('prst')])[0]
+        rst_vm_tid = self.tr_manager.get_next_track_obj(ff0_out, 'sig', 'sig', 1)
+        rst_vm = self.connect_to_tracks(rst_hm, rst_vm_tid, min_len_mode=MinLenMode.MIDDLE)
+        self.add_pin('rst_async', rst_vm)
 
         # outputs
         self.reexport(buf.get_port('out'), net_name='rstb_sync')
         self.reexport(buf.get_port('outb'), net_name='rst_sync')
 
         # clocks
-        for inst in (ff0, ff1):
-            for pin_name in ('clk', 'clkb'):
-                self.reexport(inst.get_port(pin_name), connect=True)
+        clk_vm = self.connect_wires([ff0.get_pin('clk'), ff1.get_pin('clk')])[0]
+        self.add_pin('clk', clk_vm, connect=True)
+
+        clkb_vm = self.connect_wires([ff0.get_pin('clkb'), ff1.get_pin('clkb')])[0]
+        self.add_pin('clkb', clkb_vm, connect=True)
 
         # set schematic parameters
         self.sch_params = dict(

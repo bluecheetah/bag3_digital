@@ -75,17 +75,17 @@ class SerNto1Meas(MeasurementManager):
         print('---------------')
 
         # pulse clk_div
-        pulse_list = [dict(pin=clk_div_i, tper=f't_per*{ser_ratio}', tpw=f't_per*{ser_ratio}/2', trf='t_rf', td='t_d')]
+        pulse_list = [dict(pin=clk_div_i, tper=f't_per*{ser_ratio}', tpw=f't_per*{ser_ratio}/2', trf='t_rf')]
         # sinusoidal clk
-        load_list.append(dict(pin=clk_i, type='vsin', value=dict(vo='v_VDD/2', va='v_VDD/2', freq='1/t_per', td='t_d')))
+        load_list.append(dict(pin=clk_i, type='vsin', value=dict(vo='v_VDD/2', va='v_VDD/2', freq='1/t_per')))
         if clkb_pin:
             # sinusoidal clkb
             load_list.append(dict(pin=clkb_i, type='vsin', value=dict(vo='v_VDD/2', va='v_VDD/2', freq='1/t_per',
-                                                                      td='t_d', sinephase='-180')))
+                                                                      sinephase='-180')))
             save_outputs.append(clkb_i)
 
         # synchronous rst
-        pulse_list.append(dict(pin='rst', tper='t_sim', tpw='t_d', trf='t_rf', td=0))
+        pulse_list.append(dict(pin='rst', tper='t_sim', tpw='t_pw', trf='t_rf'))
 
         tb_params = dict(
             pulse_list=pulse_list,

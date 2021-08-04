@@ -789,7 +789,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: rstb
+      net: rstb_sync
       points:
         -
           - -220
@@ -801,7 +801,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: rstb
+      net: rstb_sync
       origin:
         - -184
         - -423
@@ -812,7 +812,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: rstb
+      text: rstb_sync
   -
     - 5
     - layer: 228
@@ -957,7 +957,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: rst
+      net: rst_sync
       points:
         -
           - -220
@@ -969,7 +969,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: rst
+      net: rst_sync
       origin:
         - -184
         - -93
@@ -980,7 +980,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: rst
+      text: rst_sync
   -
     - 5
     - layer: 228
@@ -1041,30 +1041,58 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: VSS
+      net: clkb_buf
       points:
         -
-          - -510
-          - -480
+          - -710
+          - -410
         -
-          - -510
-          - -440
+          - -670
+          - -410
   -
     - 7
     - layer: 228
       purpose: 237
-      net: VSS
+      net: clkb_buf
       origin:
-        - -517
-        - -444
+        - -674
+        - -403
       alignment: 8
-      orient: R90
+      orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: VSS
+      text: clkb_buf
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rstb_sync
+      points:
+        -
+          - -330
+          - -330
+        -
+          - -290
+          - -330
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rstb_sync
+      origin:
+        - -326
+        - -323
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rstb_sync
   -
     - 5
     - layer: 228
@@ -1072,21 +1100,21 @@ shapes:
       net: VDD
       points:
         -
-          - -510
-          - -280
+          - -710
+          - -330
         -
-          - -510
-          - -240
+          - -670
+          - -330
   -
     - 7
     - layer: 228
       purpose: 237
       net: VDD
       origin:
-        - -517
-        - -276
-      alignment: 2
-      orient: R90
+        - -674
+        - -323
+      alignment: 8
+      orient: R0
       font: 5
       height: 10
       overbar: false
@@ -1097,22 +1125,22 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: rstb
+      net: rst_sync
       points:
         -
-          - -410
-          - -360
+          - -330
+          - -350
         -
-          - -370
-          - -360
+          - -290
+          - -350
   -
     - 7
     - layer: 228
       purpose: 237
-      net: rstb
+      net: rst_sync
       origin:
-        - -406
-        - -353
+        - -326
+        - -343
       alignment: 2
       orient: R0
       font: 5
@@ -1120,35 +1148,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: rstb
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: rst
-      points:
-        -
-          - -650
-          - -360
-        -
-          - -610
-          - -360
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: rst
-      origin:
-        - -614
-        - -353
-      alignment: 8
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: rst
+      text: rst_sync
   -
     - 5
     - layer: 228
@@ -1937,6 +1937,90 @@ shapes:
       visible: true
       drafting: true
       text: db
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst
+      points:
+        -
+          - -710
+          - -430
+        -
+          - -670
+          - -430
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst
+      origin:
+        - -674
+        - -423
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - -510
+          - -510
+        -
+          - -510
+          - -470
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - -517
+        - -474
+      alignment: 8
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - -510
+          - -270
+        -
+          - -510
+          - -230
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -517
+        - -266
+      alignment: 2
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
 instances:
   XCS:
     lib_name: xbase
@@ -2088,27 +2172,6 @@ instances:
     params:
       {}
     is_primitive: false
-  XINV_RST:
-    lib_name: bag3_digital
-    cell_name: inv
-    view_name: symbol
-    xform:
-      - -610
-      - -440
-      - R0
-    bbox:
-      - -614
-      - -444
-      - -406
-      - -276
-    connections:
-      VDD: VDD
-      VSS: VSS
-      in: rst
-      out: rstb
-    params:
-      {}
-    is_primitive: false
   XRST:
     lib_name: bag3_digital
     cell_name: rst_flop
@@ -2128,7 +2191,31 @@ instances:
       clk: clkb_buf
       in: p<0>
       out: p<1>
-      rst: rst
+      rst: rst_sync
+    params:
+      {}
+    is_primitive: false
+  XRST_SYNC:
+    lib_name: bag3_digital
+    cell_name: reset_sync
+    view_name: symbol
+    xform:
+      - -670
+      - -470
+      - R0
+    bbox:
+      - -674
+      - -474
+      - -326
+      - -266
+    connections:
+      VDD: VDD
+      VSS: VSS
+      clk: clkb_buf
+      din: VDD
+      rst_async: rst
+      rst_sync: rst_sync
+      rstb_sync: rstb_sync
     params:
       {}
     is_primitive: false
@@ -2151,7 +2238,7 @@ instances:
       clk: clkb_buf
       in: p<1>
       out: p<0>
-      rst: rstb
+      rst: rstb_sync
     params:
       {}
     is_primitive: false
@@ -2204,13 +2291,13 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 9064
+    - 10962
   instance#:
     - 0
     - 4
   lastSchematicExtraction:
     - 4
-    - time_val: 1627947264
+    - time_val: 1628028515
   net#:
     - 0
     - 0
@@ -2219,7 +2306,7 @@ props:
     - 7
   schGeometryLastUpdated:
     - 0
-    - 9064
+    - 10962
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -2229,10 +2316,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 9064
+    - 10962
   _dbvCvTimeStamp:
     - 0
-    - 9064
+    - 10962
   cdbRevision:
     - 0
     - 227612

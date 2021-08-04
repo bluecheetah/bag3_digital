@@ -68,7 +68,7 @@ class bag3_digital__serNto1_fast(Module):
         return dict(
             ff_rst='Parameters for rst_flops',
             ff_set='Parameters for set_flop',
-            inv_r='Parameters for rst inverter',
+            rst_sync='Parameters for reset_sync',
             inv_d='Parameters for data inverter',
             inv_en='Parameters for enable inverters',
             ff='Parameters for flops',
@@ -87,7 +87,7 @@ class bag3_digital__serNto1_fast(Module):
         ratio: int = self.params['ratio']
         return f'ser_{ratio}to1'
 
-    def design(self, ff_rst: Mapping[str, Any], ff_set: Mapping[str, Any], inv_r: Mapping[str, Any],
+    def design(self, ff_rst: Mapping[str, Any], ff_set: Mapping[str, Any], rst_sync: Mapping[str, Any],
                inv_d: Mapping[str, Any], inv_en: Mapping[str, Any], ff: Mapping[str, Any], tinv: Mapping[str, Any],
                inv_clk: Mapping[str, Any], inv_clk_div: Mapping[str, Any], ratio: int, export_nets: bool) -> None:
         """To be overridden by subclasses to design this module.
@@ -105,8 +105,9 @@ class bag3_digital__serNto1_fast(Module):
         restore_instance()
         array_instance()
         """
-        # reset inverter
-        self.instances['XINV_RST'].design(**inv_r)
+        # reset sync
+        self.instances['XRST_SYNC'].design(**rst_sync)
+        self.reconnect_instance_terminal('XRST_SYNC', 'clkb', 'clk_buf')
 
         # clock buffers
         self.instances['XINVD'].design(**inv_clk_div)
@@ -114,7 +115,7 @@ class bag3_digital__serNto1_fast(Module):
 
         # ff_set
         self.instances['XSET'].design(**ff_set)
-        self.reconnect_instance('XSET', [('in', f'p<{ratio - 1}>'), ('clkb', 'clk_buf'), ('setb', 'rstb')])
+        self.reconnect_instance('XSET', [('in', f'p<{ratio - 1}>'), ('clkb', 'clk_buf'), ('setb', 'rstb_sync')])
 
         # inv_en
         self.instances['XINV_P'].design(**inv_en)
@@ -158,5 +159,6 @@ class bag3_digital__serNto1_fast(Module):
         self.rename_pin('din', f'din{suf}')
 
         if export_nets:
-            for pin in (f'd{suf}', f'p{suf}', 'clk_buf', 'clkb_buf', 'clk_div_buf', 'clk_divb_buf', 'p0_buf'):
+            for pin in (f'd{suf}', f'p{suf}', 'clk_buf', 'clkb_buf', 'clk_div_buf', 'clk_divb_buf', 'p0_buf',
+                        'rst_sync'):
                 self.add_pin(pin, TermType.output)

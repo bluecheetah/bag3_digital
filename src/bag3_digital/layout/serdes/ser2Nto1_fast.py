@@ -132,6 +132,8 @@ class Ser2Nto1Fast(MOSBase):
                                      lower=lower, upper=upper)[0]
         self.add_pin('VDD', [vdd_hm, vdd_xm, vdd_xxm])
         self.add_pin('VSS', [vss_hm, vss_xm, vss_xxm])
+        self.reexport(ser0.get_port('VDD_ym'))
+        self.reexport(ser0.get_port('VSS_ym'))
 
         # dout<0> and dout<1>
         in_vm_tid = TrackID(vm_layer, vm_locs[0], w_clk_vm)
@@ -157,9 +159,10 @@ class Ser2Nto1Fast(MOSBase):
         clkb_xm = self.connect_to_track_wires(clkb_vm, ser1.get_pin('clk'))
         self.add_pin('clkb', clkb_xm, mode=PinMode.UPPER)
 
-        # reexport clk_buf and clkb_buf on ym_layer for top level routing
-        self.reexport(ser0.get_port('clk_buf_ym'))
-        self.reexport(ser0.get_port('clkb_buf_ym'))
+        # reexport wires on ym_layer for top level routing
+        for idx in range(ratio):
+            self.reexport(ser0.get_port(f'left_ym<{idx}>'))
+            self.reexport(ser0.get_port(f'right_ym<{idx}>'))
 
         # clk_div
         self.connect_wires([ser0.get_pin('clk_div', layer=vm_layer), ser1.get_pin('clk_div', layer=vm_layer)])

@@ -163,6 +163,45 @@ terminals:
           format: 1
     stype: 0
     ttype: 0
+  clk_div_buf:
+    obj:
+      - 1
+      - inst:
+          lib_name: basic
+          cell_name: opin
+          view_name: symbol
+          xform:
+            - -810
+            - 670
+            - R0
+          bbox:
+            - -810
+            - 644
+            - -753
+            - 680
+          connections:
+            {}
+          params:
+            {}
+          is_primitive: true
+        attr:
+          layer: 229
+          purpose: 237
+          net: ""
+          origin:
+            - -785
+            - 670
+          alignment: 1
+          orient: R0
+          font: 5
+          height: 10
+          overbar: false
+          visible: true
+          drafting: true
+          attr_type: 0
+          format: 1
+    stype: 0
+    ttype: 1
   din:
     obj:
       - 1
@@ -2291,22 +2330,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 10962
+    - 12804
   instance#:
     - 0
     - 4
   lastSchematicExtraction:
     - 4
-    - time_val: 1628028515
+    - time_val: 1628644968
   net#:
     - 0
     - 0
   pin#:
     - 0
-    - 7
+    - 8
   schGeometryLastUpdated:
     - 0
-    - 10962
+    - 12804
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -2316,10 +2355,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 10962
+    - 12804
   _dbvCvTimeStamp:
     - 0
-    - 10962
+    - 12804
   cdbRevision:
     - 0
     - 227612

@@ -163,6 +163,45 @@ terminals:
           format: 1
     stype: 0
     ttype: 0
+  clk_div_buf:
+    obj:
+      - 1
+      - inst:
+          lib_name: basic
+          cell_name: opin
+          view_name: symbol
+          xform:
+            - -1040
+            - -30
+            - R0
+          bbox:
+            - -1040
+            - -56
+            - -983
+            - -20
+          connections:
+            {}
+          params:
+            {}
+          is_primitive: true
+        attr:
+          layer: 229
+          purpose: 237
+          net: ""
+          origin:
+            - -1015
+            - -30
+          alignment: 1
+          orient: R0
+          font: 5
+          height: 10
+          overbar: false
+          visible: true
+          drafting: true
+          attr_type: 0
+          format: 1
+    stype: 0
+    ttype: 1
   clkb:
     obj:
       - 1
@@ -1136,6 +1175,62 @@ shapes:
       visible: true
       drafting: true
       text: dout
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk_div_buf
+      points:
+        -
+          - -420
+          - 80
+        -
+          - -380
+          - 80
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk_div_buf
+      origin:
+        - -416
+        - 87
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_div_buf
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: nc
+      points:
+        -
+          - -420
+          - -260
+        -
+          - -380
+          - -260
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: nc
+      origin:
+        - -416
+        - -253
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: nc
 instances:
   XCS:
     lib_name: xbase
@@ -1177,6 +1272,24 @@ instances:
     params:
       {}
     is_primitive: false
+  XNC:
+    lib_name: basic
+    cell_name: noConn
+    view_name: symbol
+    xform:
+      - -380
+      - -260
+      - R0
+    bbox:
+      - -390
+      - -310
+      - -370
+      - -256
+    connections:
+      noConn: nc
+    params:
+      {}
+    is_primitive: true
   XSER0:
     lib_name: bag3_digital
     cell_name: serNto1_fast
@@ -1195,6 +1308,7 @@ instances:
       VSS: VSS
       clk: clk
       clk_div: clk_div
+      clk_div_buf: nc
       din: din
       dout: ser_out<0>
       rst: rst
@@ -1219,6 +1333,7 @@ instances:
       VSS: VSS
       clk: clkb
       clk_div: clk_div
+      clk_div_buf: clk_div_buf
       din: din
       dout: ser_out<1>
       rst: rst
@@ -1274,22 +1389,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 4402
+    - 5486
   instance#:
     - 0
     - 2
   lastSchematicExtraction:
     - 4
-    - time_val: 1627974609
+    - time_val: 1628645375
   net#:
     - 0
     - 0
   pin#:
     - 0
-    - 9
+    - 10
   schGeometryLastUpdated:
     - 0
-    - 4402
+    - 5486
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1299,10 +1414,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 4402
+    - 5486
   _dbvCvTimeStamp:
     - 0
-    - 4402
+    - 5486
   cdbRevision:
     - 0
     - 227612

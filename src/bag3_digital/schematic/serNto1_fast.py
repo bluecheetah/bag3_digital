@@ -159,6 +159,6 @@ class bag3_digital__serNto1_fast(Module):
         self.rename_pin('din', f'din{suf}')
 
         if export_nets:
-            for pin in (f'd{suf}', f'p{suf}', 'clk_buf', 'clkb_buf', 'clk_div_buf', 'clk_divb_buf', 'p0_buf',
+            for pin in (f'd{suf}', f'p{suf}', 'clk_buf', 'clkb_buf', 'clk_divb_buf', 'p0_buf',
                         'rst_sync'):
                 self.add_pin(pin, TermType.output)

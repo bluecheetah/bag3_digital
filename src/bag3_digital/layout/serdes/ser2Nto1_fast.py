@@ -170,6 +170,9 @@ class Ser2Nto1Fast(MOSBase):
                                          ser1.get_pin('clk_div', layer=xm_layer)])[0]
         self.add_pin('clk_div', clk_div_xm, mode=PinMode.LOWER)
 
+        # clk_div_buf from XSER1
+        self.reexport(ser1.get_port('clk_div_buf'))
+
         # rst
         rst = self.connect_wires([ser0.get_pin('rst'), ser1.get_pin('rst')])[0]
         self.add_pin('rst', rst, mode=PinMode.LOWER)

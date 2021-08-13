@@ -131,13 +131,15 @@ class SerNto1Fast(MOSBase):
         # --- Placement --- #
         blk_sp = self.min_sep_col
         sub_sep = self.sub_sep_col
-        tap_ncols = self.get_tap_ncol()
+        seg_tap = 4
+        tap_ncols = self.get_tap_ncol(seg_tap)
+        num_tiles = 3
 
         # left tap
-        vdd_list, vss_list = [], []
-        self.add_tap(0, vdd_list, vss_list, tile_idx=0)
-        self.add_tap(0, vdd_list, vss_list, tile_idx=1)
-        self.add_tap(0, vdd_list, vss_list, tile_idx=2)
+        vdd_list = [[] for _ in range(num_tiles)]
+        vss_list = [[] for _ in range(num_tiles)]
+        for idx in range(num_tiles):
+            self.add_tap(0, vdd_list[idx], vss_list[idx], tile_idx=idx, seg=seg_tap)
         sup_coords = [self.grid.track_to_coord(self.conn_layer, tap_ncols >> 1)]
         cur_col = tap_ncols + sub_sep - blk_sp
 
@@ -160,9 +162,8 @@ class SerNto1Fast(MOSBase):
             if idx > 0 and idx % tap_sep_flop == 0:
                 # mid tap
                 cur_col += sub_sep
-                self.add_tap(cur_col, vdd_list, vss_list, tile_idx=0)
-                self.add_tap(cur_col, vdd_list, vss_list, tile_idx=1)
-                self.add_tap(cur_col, vdd_list, vss_list, tile_idx=2)
+                for tidx in range(num_tiles):
+                    self.add_tap(cur_col, vdd_list[tidx], vss_list[tidx], tile_idx=tidx, seg=seg_tap)
                 sup_coords.append(self.grid.track_to_coord(self.conn_layer, cur_col + (tap_ncols >> 1)))
                 cur_col += tap_ncols + sub_sep
             else:
@@ -252,7 +253,7 @@ class SerNto1Fast(MOSBase):
             cur_col2 = cur_col
             if idx < ratio:
                 ff_s = self.add_tile(ff_master, 2, cur_col2)
-                ff_f_list.append(ff_s)
+                ff_s_list.append(ff_s)
                 cur_col2 += ff_ncols
                 clk_div_vm = ff_s.get_pin('clk')
                 clk_div_list.append(clk_div_vm)
@@ -322,13 +323,11 @@ class SerNto1Fast(MOSBase):
         invf_00 = self.add_tile(inv_0_master, 0, cur_col, flip_lr=True)
         invf_10 = self.add_tile(inv_0_master, 1, cur_col, flip_lr=True)
         invs_0 = self.add_tile(inv_0_master, 2, cur_col, flip_lr=True)
-        inv_clk_list = [invf_00, invf_01, invf_10, invf_11, invs_0, invs_1]
 
         # right tap
         cur_col += sub_sep
-        self.add_tap(cur_col, vdd_list, vss_list, tile_idx=0)
-        self.add_tap(cur_col, vdd_list, vss_list, tile_idx=1)
-        self.add_tap(cur_col, vdd_list, vss_list, tile_idx=2)
+        for idx in range(num_tiles):
+            self.add_tap(cur_col, vdd_list[idx], vss_list[idx], tile_idx=idx, seg=seg_tap)
         sup_coords.append(self.grid.track_to_coord(self.conn_layer, cur_col + (tap_ncols >> 1)))
 
         self.set_mos_size()
@@ -337,13 +336,23 @@ class SerNto1Fast(MOSBase):
 
         # --- Routing --- #
         # supplies
-        vss_hm_list, vdd_hm_list = [], []
-        for inst in chain(ff_rst_list, ff_f_list, ff_s_list, tinv_f_list, tinv_s_list, inv_clk_list,
-                          [inv_r, inv_en, rst_ff0, rst_ff1]):
-            vss_hm_list.append(inst.get_pin('VSS'))
-            vdd_hm_list.append(inst.get_pin('VDD'))
-        vss_hm = self.connect_to_track_wires(vss_list, self.connect_wires(vss_hm_list, lower=0, upper=xh))[0]
-        vdd_hm = self.connect_to_track_wires(vdd_list, self.connect_wires(vdd_hm_list, lower=0, upper=xh))[0]
+        vss_hm_list = [[] for _ in range(num_tiles)]
+        vdd_hm_list = [[] for _ in range(num_tiles)]
+        for inst in chain(ff_rst_list, [invf_01, invf_00, inv_r, inv_en, rst_ff0]):
+            vss_hm_list[0].append(inst.get_pin('VSS'))
+            vdd_hm_list[0].append(inst.get_pin('VDD'))
+        for inst in chain(ff_f_list, tinv_f_list, [invf_11, invf_10, rst_ff1]):
+            vss_hm_list[1].append(inst.get_pin('VSS'))
+            vdd_hm_list[1].append(inst.get_pin('VDD'))
+        for inst in chain(ff_s_list, tinv_s_list, [invs_1, invs_0]):
+            vss_hm_list[2].append(inst.get_pin('VSS'))
+            vdd_hm_list[2].append(inst.get_pin('VDD'))
+        vss_hm, vdd_hm = [], []
+        for idx in range(num_tiles):
+            vss_hm.append(self.connect_to_track_wires(vss_list[idx], self.connect_wires(vss_hm_list[idx])[0]))
+            vdd_hm.append(self.connect_to_track_wires(vdd_list[idx], self.connect_wires(vdd_hm_list[idx])[0]))
+        vss_hm = self.connect_wires(vss_hm, lower=0, upper=xh)[0]
+        vdd_hm = self.connect_wires(vdd_hm, lower=0, upper=xh)[0]
         vdd_dict, vss_dict = self.connect_supplies(vdd_hm, vss_hm, sup_coords, xh, yh)
         self.add_pin('VDD_ym', vdd_dict[ym_layer], hide=True)
         self.add_pin('VSS_ym', vss_dict[ym_layer], hide=True)

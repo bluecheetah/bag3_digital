@@ -1,28 +1,14 @@
-
-
 from typing import Any, Dict, Sequence, Optional, Union, Tuple, Mapping, Type, List
 
-from itertools import chain
-
-from pybag.enum import MinLenMode, RoundMode
-
-from bag.util.math import HalfInt
 from bag.util.immutable import Param
 from bag.design.module import Module
-from bag.layout.template import TemplateDB, PyLayInstance
+from bag.layout.template import TemplateDB
 from bag.layout.routing.base import TrackID, WireArray
 
-from xbase.layout.enum import MOSWireType
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
-from xbase.layout.mos.data import MOSPorts
 from xbase.layout.mos.guardring import GuardRing
 
-from ...schematic.inv import bag3_digital__inv
 from ...schematic.inv_chain import bag3_digital__inv_chain
-from ...schematic.inv_tristate import bag3_digital__inv_tristate
-from ...schematic.nand import bag3_digital__nand
-from ...schematic.nor import bag3_digital__nor
-from ...schematic.passgate import bag3_digital__passgate
 from .gates import InvChainCore
 from  bag3_analog.enum import DrawTaps
 

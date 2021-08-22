@@ -4,12 +4,12 @@ from bag.util.immutable import Param
 from bag.design.module import Module
 from bag.layout.template import TemplateDB
 from bag.layout.routing.base import WireArray
+from bag.layout.enum import DrawTaps
 
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 from xbase.layout.mos.guardring import GuardRing
 
 from ...schematic.inv_chain import bag3_digital__inv_chain
-from ...enum import DrawTaps
 from .gates import InvChainCore
 
 

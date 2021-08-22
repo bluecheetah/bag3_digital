@@ -1,16 +1,16 @@
-from typing import Any, Dict, Sequence, Optional, Union, Tuple, Mapping, Type, List
+from typing import Any, Dict, Optional, Mapping, Type, List
 
 from bag.util.immutable import Param
 from bag.design.module import Module
 from bag.layout.template import TemplateDB
-from bag.layout.routing.base import TrackID, WireArray
+from bag.layout.routing.base import WireArray
 
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 from xbase.layout.mos.guardring import GuardRing
 
 from ...schematic.inv_chain import bag3_digital__inv_chain
+from ...enum import DrawTaps
 from .gates import InvChainCore
-from  bag3_analog.enum import DrawTaps
 
 
 class InvChainCoreWithTaps(MOSBase):
@@ -18,7 +18,7 @@ class InvChainCoreWithTaps(MOSBase):
         MOSBase.__init__(self, temp_db, params, **kwargs)
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         ans = InvChainCore.get_params_info()
         ans.update(
             draw_taps='LEFT or RIGHT or BOTH or NONE',
@@ -26,7 +26,7 @@ class InvChainCoreWithTaps(MOSBase):
         return ans
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         ans = InvChainCore.get_default_param_values()
         ans.update(
             draw_taps='NONE',
@@ -51,8 +51,6 @@ class InvChainCoreWithTaps(MOSBase):
         hm_layer = self.conn_layer + 1
         vm_layer = hm_layer + 1
         xm_layer = vm_layer + 1
-        ym_layer = xm_layer + 1
-        xxm_layer = ym_layer + 1
 
         sep = max(self.min_sep_col, self.get_hm_sp_le_sep_col())
         # taps
@@ -115,9 +113,9 @@ class InvChainCoreGuardRing(GuardRing):
         GuardRing.__init__(self, temp_db, params, **kwargs)
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
-        ans = InvChainCoreWithTaps.get_params_info()
-        ans.update(
+    def get_params_info(cls) -> Mapping[str, str]:
+        ans = dict(
+            **InvChainCoreWithTaps.get_params_info(),
             pmos_gr='pmos guard ring tile name.',
             nmos_gr='nmos guard ring tile name.',
             edge_ncol='Number of columns on guard ring edge.  Use 0 for default.',
@@ -125,9 +123,9 @@ class InvChainCoreGuardRing(GuardRing):
         return ans
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
-        ans = InvChainCoreWithTaps.get_default_param_values()
-        ans.update(
+    def get_default_param_values(cls) -> Mapping[str, Any]:
+        ans = dict(
+            **InvChainCoreWithTaps.get_default_param_values(),
             pmos_gr='pgr',
             nmos_gr='ngr',
             edge_ncol=0,

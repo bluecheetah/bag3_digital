@@ -82,6 +82,7 @@ class bag3_digital__inv_tristate(Module):
             th_n='NMOS threshold.',
             has_rsthb='True to add reset-high-bar pin.',
             out_cap_large='True if output parasitic cap is large.  Only affect behavioral model.',
+            separate_out='True if leaving p-stack and n-stack output unconnected'
         )
 
     @classmethod
@@ -94,11 +95,12 @@ class bag3_digital__inv_tristate(Module):
             seg_n=-1,
             stack_p=1,
             stack_n=1,
+            separate_out=False
         )
 
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,
                th_n: str, has_rsthb: bool, out_cap_large: Optional[bool], stack_p: int,
-               stack_n: int) -> None:
+               stack_n: int, separate_out: bool) -> None:
         if seg_p <= 0:
             seg_p = seg
         if seg_n <= 0:
@@ -130,6 +132,18 @@ class bag3_digital__inv_tristate(Module):
             ng_name = f'g<{2 * stack_n - 1}:0>'
             self.reconnect_instance_terminal('XN', ng_name, nin_name)
 
-        self.set_pin_attribute('out', 'type', 'trireg')
-        if out_cap_large is not None:
-            self.set_pin_attribute('out', 'trireg_cap_large', str(out_cap_large))
+        if not separate_out:
+            self.set_pin_attribute('out', 'type', 'trireg')
+            if out_cap_large is not None:
+                self.set_pin_attribute('out', 'trireg_cap_large', str(out_cap_large))
+        else:
+            self.reconnect_instance_terminal('XN', 'd', 'nout')
+            self.reconnect_instance_terminal('XP', 'd', 'pout')
+            self.add_pin('pout', TermType.output)
+            self.add_pin('nout', TermType.output)
+            self.remove_pin('out')
+            self.set_pin_attribute('pout', 'type', 'trireg')
+            self.set_pin_attribute('nout', 'type', 'trireg')
+            if out_cap_large is not None:
+                self.set_pin_attribute('pout', 'trireg_cap_large', str(out_cap_large))
+                self.set_pin_attribute('nout', 'trireg_cap_large', str(out_cap_large))

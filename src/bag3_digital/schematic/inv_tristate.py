@@ -82,7 +82,7 @@ class bag3_digital__inv_tristate(Module):
             th_n='NMOS threshold.',
             has_rsthb='True to add reset-high-bar pin.',
             out_cap_large='True if output parasitic cap is large.  Only affect behavioral model.',
-            separate_out='True if leaving p-stack and n-stack output unconnected'
+            separate_out='True to have pull-up/pull-down network drains unconnected'
         )
 
     @classmethod
@@ -95,7 +95,7 @@ class bag3_digital__inv_tristate(Module):
             seg_n=-1,
             stack_p=1,
             stack_n=1,
-            separate_out=False
+            separate_out=False,
         )
 
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,

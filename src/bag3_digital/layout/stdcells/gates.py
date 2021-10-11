@@ -751,7 +751,7 @@ class InvTristateCore(MOSBase):
             th_p=self.place_info.get_row_place_info(ridx_p).row_info.threshold,
             stack_p=stack_p,
             stack_n=stack_n,
-            separate_out=separate_out
+            separate_out=separate_out,
         )
 
 

@@ -608,6 +608,7 @@ class InvTristateCore(MOSBase):
             sig_locs='Signal track location dictionary.',
             vertical_out='True to draw output on vertical metal layer.',
             vertical_sup='True to have supply unconnected on conn_layer.',
+            separate_out='True to have pull-up/pull-down network drains unconnected',
         )
 
     @classmethod
@@ -625,6 +626,7 @@ class InvTristateCore(MOSBase):
             sig_locs=None,
             vertical_out=True,
             vertical_sup=False,
+            separate_out=False,
         )
 
     def draw_layout(self) -> None:
@@ -651,6 +653,7 @@ class InvTristateCore(MOSBase):
         sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
         vertical_out: bool = self.params['vertical_out']
         vertical_sup: bool = self.params['vertical_sup']
+        separate_out: bool = self.params['separate_out']
 
         if w_p == 0:
             w_p = self.place_info.get_row_place_info(ridx_p).row_info.width
@@ -659,6 +662,9 @@ class InvTristateCore(MOSBase):
 
         hm_layer = self.conn_layer + 1
         vm_layer = hm_layer + 1
+        if vertical_out and separate_out:  # Sanity check
+            raise ValueError('vertical_out cannot be true at the same time as separate_out')
+
         if vertical_out and self.top_layer < vm_layer:
             raise ValueError(f'MOSBasePlaceInfo top layer must be at least {vm_layer}')
 
@@ -701,6 +707,7 @@ class InvTristateCore(MOSBase):
         self.add_pin('en', self.connect_to_tracks(nports.g1, tid))
         tid = TrackID(hm_layer, enb_tidx, width=tr_w_h)
         self.add_pin('enb', self.connect_to_tracks(pports.g1, tid))
+        mlm = MinLenMode.MIDDLE if separate_out else MinLenMode.NONE
         tid = TrackID(hm_layer, nout_tidx, width=tr_w_h)
         nout = self.connect_to_tracks(nports.d, tid)
         tid = TrackID(hm_layer, pout_tidx, width=tr_w_h)
@@ -727,8 +734,12 @@ class InvTristateCore(MOSBase):
             self.add_pin('VDD', vdd)
             self.add_pin('VSS', vss)
 
-        self.add_pin('pout', pout, label='out:', hide=vertical_out)
-        self.add_pin('nout', nout, label='out:', hide=vertical_out)
+        if not separate_out:
+            self.add_pin('pout', pout, label='out:', hide=vertical_out)
+            self.add_pin('nout', nout, label='out:', hide=vertical_out)
+        else:
+            self.add_pin('pout', pout)
+            self.add_pin('nout', nout)
         # set properties
         self.sch_params = dict(
             seg_p=seg_p,
@@ -740,6 +751,7 @@ class InvTristateCore(MOSBase):
             th_p=self.place_info.get_row_place_info(ridx_p).row_info.threshold,
             stack_p=stack_p,
             stack_n=stack_n,
+            separate_out=separate_out,
         )
 
 

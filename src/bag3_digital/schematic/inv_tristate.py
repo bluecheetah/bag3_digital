@@ -82,7 +82,7 @@ class bag3_digital__inv_tristate(Module):
             th_n='NMOS threshold.',
             has_rsthb='True to add reset-high-bar pin.',
             out_cap_large='True if output parasitic cap is large.  Only affect behavioral model.',
-            separate_out='True to have pull-up/pull-down network drains unconnected'
+            separate_out='True to have pull-up/pull-down network drains unconnected',
         )
 
     @classmethod

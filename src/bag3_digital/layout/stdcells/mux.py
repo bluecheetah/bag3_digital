@@ -336,7 +336,7 @@ class Mux2to1Core(MOSBase):
         if sig_locs is None:
             sig_locs = {}
 
-        inv_seg = seg * fout
+        inv_seg = int(seg * fout)
 
         en_tidx = sig_locs.get('nen', self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig',
                                                            wire_idx=0))

@@ -47,7 +47,7 @@ class Des1toNMeas(MeasurementManager):
         tbm_specs: Mapping[str, Any] = self.specs['tbm_specs']
 
         save_outputs = ['din', 'clk', 'clk_div', f'dout<{des_ratio - 1}:0>', f'd<{des_ratio - 1}:0>', 'clkb',
-                        'clk_divb']
+                        'clk_divb', 'clk_div_buf', 'clk_divb_buf', 'clk_buf', 'clkb_buf', 'VDC0']
 
         # harnesses
         if harnesses:

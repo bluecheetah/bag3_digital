@@ -113,6 +113,10 @@ class InvChainCoreGuardRing(GuardRing):
         GuardRing.__init__(self, temp_db, params, **kwargs)
 
     @classmethod
+    def get_schematic_class(cls) -> Optional[Type[Module]]:
+        return InvChainCoreWithTaps.get_schematic_class()
+
+    @classmethod
     def get_params_info(cls) -> Mapping[str, str]:
         ans = dict(
             **InvChainCoreWithTaps.get_params_info(),

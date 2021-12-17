@@ -1,4 +1,4 @@
-from typing import Any, Optional, Mapping, Type
+from typing import Any, Optional, Mapping, Type, Union, Tuple
 from itertools import chain
 
 from pybag.enum import MinLenMode, RoundMode
@@ -81,7 +81,7 @@ class Des1toN(MOSBase):
         ng_tidx = self.get_track_index(ridx_n, MOSWireType.G, 'sig', 1)
         nd1_tidx = self.get_track_index(ridx_n, MOSWireType.DS, 'sig', -1)
         nd0_tidx = self.get_track_index(ridx_n, MOSWireType.DS, 'sig', -2)
-        seg_fast: int = seg_dict['inv_fast']
+        seg_fast: Union[int, Tuple[int, int]] = seg_dict['inv_fast']
         if isinstance(seg_fast, int):
             assert seg_fast & 1 == 0, f'seg_dict["inv_fast"]={seg_fast} has to be even.'
             seg_fast0, seg_fast1 = seg_fast, seg_fast
@@ -96,7 +96,7 @@ class Des1toN(MOSBase):
                              sig_locs={'in': pg_tidx, 'pout': pd1_tidx, 'nout': nd0_tidx})
         invf_1_master = self.new_template(InvCore, params=invf_1_params)
 
-        seg_slow: int = seg_dict['inv_slow']
+        seg_slow: Union[int, Tuple[int, int]] = seg_dict['inv_slow']
         if isinstance(seg_slow, int):
             assert seg_slow & 1 == 0, f'seg_dict["inv_slow"]={seg_slow} has to be even.'
             seg_slow0, seg_slow1 = seg_slow, seg_slow

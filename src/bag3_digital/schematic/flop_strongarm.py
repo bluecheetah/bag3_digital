@@ -20,6 +20,8 @@ from typing import Dict, Any
 import pkg_resources
 from pathlib import Path
 
+from pybag.enum import TermType
+
 from bag.design.module import Module
 from bag.design.database import ModuleDB
 from bag.util.immutable import Param
@@ -45,19 +47,29 @@ class bag3_digital__flop_strongarm(Module):
             sa_params='strongarm frontend parameters.',
             sr_params='sr latch parameters.',
             has_rstlb='True to add rstlb functionality.',
+            export_mid='True to export intermediate nodes',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Dict[str, Any]:
-        return dict(has_rstlb=False)
+        return dict(has_rstlb=False, export_mid=False)
 
-    def design(self, sa_params: Param, sr_params: Param, has_rstlb: bool) -> None:
+    def design(self, sa_params: Param, sr_params: Param, has_rstlb: bool, export_mid: bool) -> None:
         inbuf_test = sr_params.get('inbuf_params', None)
         if inbuf_test is None:
             raise ValueError('SR latch must have input buffers.')
 
-        self.instances['XSA'].design(has_rstb=has_rstlb, **sa_params)
+        self.instances['XSA'].design(has_rstb=has_rstlb, **sa_params.copy(append=dict(export_mid=export_mid)))
         self.instances['XSR'].design(has_rstb=has_rstlb, **sr_params)
 
         if not has_rstlb:
             self.remove_pin('rstlb')
+
+        if export_mid:
+            self.add_pin('midp', TermType.inout)
+            self.add_pin('midn', TermType.inout)
+
+            sa_debug_conns = {pin: f'fe_{pin}' for pin in ['midp', 'midn', 'tail']}
+            self.reconnect_instance('XSA', sa_debug_conns.items())
+            for pin in sa_debug_conns.values():
+                self.add_pin(pin, TermType.inout)

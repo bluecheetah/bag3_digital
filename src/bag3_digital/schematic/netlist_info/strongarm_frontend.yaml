@@ -1546,6 +1546,102 @@ shapes:
       visible: true
       drafting: true
       text: VSS
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk
+      points:
+        -
+          - 340
+          - -40
+        -
+          - 380
+          - -40
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk
+      origin:
+        - 360
+        - -33
+      alignment: 5
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 420
+          - -10
+        -
+          - 420
+          - 30
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 413
+        - 10
+      alignment: 5
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 420
+          - -40
+        -
+          - 420
+          - -10
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: tail
+      points:
+        -
+          - 420
+          - -110
+        -
+          - 420
+          - -70
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: tail
+      origin:
+        - 413
+        - -74
+      alignment: 8
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: tail
 instances:
   XBR:
     lib_name: xbase
@@ -1840,6 +1936,32 @@ instances:
         - 3
         - 4
     is_primitive: true
+  XSWT:
+    lib_name: BAG_prim
+    cell_name: pmos4_standard
+    view_name: symbol
+    xform:
+      - 380
+      - -40
+      - R0
+    bbox:
+      - 312
+      - -127
+      - 511
+      - 47
+    connections:
+      B: VDD
+      D: tail
+      G: clk
+      S: VDD
+    params:
+      l:
+        - 3
+        - 10n
+      w:
+        - 3
+        - 4
+    is_primitive: true
   XTAIL:
     lib_name: xbase
     cell_name: nmos4_stack
@@ -1864,19 +1986,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 6379
+    - 7243
+  instance#:
+    - 0
+    - 1
   lastSchematicExtraction:
     - 4
-    - time_val: 1623106956
+    - time_val: 1634143625
   net#:
     - 0
-    - 19
+    - 21
   pin#:
     - 0
     - 16
   schGeometryLastUpdated:
     - 0
-    - 6379
+    - 7243
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1886,10 +2011,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 6379
+    - 7243
   _dbvCvTimeStamp:
     - 0
-    - 6379
+    - 7243
   cdbRevision:
     - 0
     - 227612

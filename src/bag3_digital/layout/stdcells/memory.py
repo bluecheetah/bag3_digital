@@ -43,7 +43,7 @@
 
 """This module contains layout generators for various memory elements."""
 
-from typing import Any, Dict, Optional, Type
+from typing import Any, Mapping, Optional, Type, Union
 
 from pybag.enum import RoundMode, MinLenMode
 
@@ -57,10 +57,16 @@ from xbase.layout.enum import MOSWireType
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 
 from .mux import Mux2to1Core
-from .gates import InvTristateCore, NOR2Core, InvCore, PassGateCore
+from .gates import InvTristateCore, NOR2Core, InvCore, PassGateCore, NAND2Core
 
 # noinspection PyUnresolvedReferences
 from ._flop_scan_rst import FlopScanRstlbTwoTile
+
+from .util import RstType
+from ...schematic.latch import bag3_digital__latch
+from ...schematic.flop import bag3_digital__flop
+from ...schematic.rst_flop import bag3_digital__rst_flop
+from ...schematic.rst_latch import bag3_digital__rst_latch
 
 
 class LatchCore(MOSBase):
@@ -75,11 +81,10 @@ class LatchCore(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'latch')
+        return bag3_digital__latch
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg='number of segments of output inverter.',
@@ -93,7 +98,7 @@ class LatchCore(MOSBase):
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -117,7 +122,7 @@ class LatchCore(MOSBase):
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
 
@@ -259,13 +264,11 @@ class FlopCore(MOSBase):
         if scan:
             raise ValueError('See Developer')
         if rst:
-            # noinspection PyTypeChecker
-            return ModuleDB.get_schematic_class('bag3_digital', 'rst_flop')
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'flop')
+            return bag3_digital__rst_flop
+        return bag3_digital__flop
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg='number of segments of output inverter.',
@@ -281,13 +284,14 @@ class FlopCore(MOSBase):
             seg_ck='number of segments for clock inverter.  0 to disable.',
             seg_mux='Dictionary of segments for scan mux, if scanable',
             resetable='True if flop is resetable, default is False',
+            rst_type='SET or RESET; RESET by default',
             scanable='True if flop needs to have scanability',
             extra_sp='This parameter is added to the min value of one of the separations '
                      '(mostly used to make power vertical stripes aligned)'
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -301,6 +305,7 @@ class FlopCore(MOSBase):
             seg_ck=0,
             seg_mux=None,
             resetable=False,
+            rst_type=RstType.RESET,
             scanable=False,
             extra_sp=0,
         )
@@ -313,14 +318,17 @@ class FlopCore(MOSBase):
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
         fanout_lat: float = self.params['fanout_lat']
         fanout_mux: float = self.params['fanout_mux']
         seg_ck: int = self.params['seg_ck']
-        seg_mux: Optional[Dict[str, int]] = self.params['seg_mux']
+        seg_mux: Optional[Mapping[str, int]] = self.params['seg_mux']
         rst: bool = self.params['resetable']
+        rst_type: Union[str, RstType] = self.params['rst_type']
+        if isinstance(rst_type, str):
+            rst_type = RstType[rst_type]
         scan: bool = self.params['scanable']
         extra_sp: int = self.params['extra_sp']
 
@@ -347,6 +355,8 @@ class FlopCore(MOSBase):
                                     'nin': pclk_tidx, 'pclkb': pclkb_tidx,
                                     'pout': sig_locs.get('pout', pclkb_tidx)},
                           fanout_in=fanout_in, fanout_kp=fanout_kp)
+        if rst:
+            lat_params['rst_type'] = rst_type
 
         s_master = self.new_template(RstLatchCore if rst else LatchCore, params=lat_params)
         seg_m = max(2, int(round(s_master.seg_in / (2 * fanout_lat))) * 2)
@@ -437,10 +447,16 @@ class FlopCore(MOSBase):
 
         # connect rst if rst is True
         if rst:
-            rst_warr = self.connect_wires([s_inst.get_pin('nrst'), m_inst.get_pin('nrst')])
-            self.add_pin('nrst', rst_warr, hide=True)
-            self.add_pin('prst', rst_warr, hide=True)
-            self.add_pin('rst', [s_inst.get_pin('rst'), m_inst.get_pin('rst')], label='rst:')
+            if rst_type is RstType.RESET:
+                rst_name = 'rst'
+            elif rst_type is RstType.SET:
+                rst_name = 'setb'
+            else:
+                raise ValueError(f'Unknown rst_type={rst_type}. Use SET or RESET.')
+            rst_warr = self.connect_wires([s_inst.get_pin(f'n{rst_name}'), m_inst.get_pin(f'n{rst_name}')])
+            self.add_pin(f'n{rst_name}', rst_warr, hide=True)
+            self.add_pin(f'p{rst_name}', rst_warr, hide=True)
+            self.add_pin(rst_name, [s_inst.get_pin(rst_name), m_inst.get_pin(rst_name)], connect=True)
 
         # connect mux output to flop input if scan is true
         hm_layer = self.conn_layer + 1
@@ -480,7 +496,8 @@ class FlopCore(MOSBase):
             self.sch_params = dict(
                 m_params=m_master.sch_params,
                 s_params=s_master.sch_params,
-                inv_params=inv_master.sch_params if inv_master else None
+                inv_params=inv_master.sch_params if inv_master else None,
+                rst_type=rst_type,
             )
         else:
             self.sch_params = dict(
@@ -514,11 +531,10 @@ class RstLatchCore(MOSBase):
 
     @classmethod
     def get_schematic_class(cls) -> Optional[Type[Module]]:
-        # noinspection PyTypeChecker
-        return ModuleDB.get_schematic_class('bag3_digital', 'rst_latch')
+        return bag3_digital__rst_latch
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg='number of segments of output NOR.',
@@ -531,10 +547,11 @@ class RstLatchCore(MOSBase):
             fanout_in='input stage fanout.',
             fanout_kp='keeper stage fanout.',
             vertical_clk='True to have vertical clk and clkb',
+            rst_type='SET or RESET; RESET by default',
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -546,6 +563,7 @@ class RstLatchCore(MOSBase):
             seg_dict=None,
             seg=1,
             vertical_clk=True,
+            rst_type=RstType.RESET,
         )
 
     def draw_layout(self) -> None:
@@ -559,15 +577,18 @@ class RstLatchCore(MOSBase):
         self.draw_base(pinfo)
 
         seg: int = self.params['seg']
-        seg_dict: Optional[Dict[str, int]] = self.params['seg_dict']
+        seg_dict: Optional[Mapping[str, int]] = self.params['seg_dict']
         w_p: int = self.params['w_p']
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
         vertical_clk: bool = self.params['vertical_clk']
+        rst_type: Union[str, RstType] = self.params['rst_type']
+        if isinstance(rst_type, str):
+            rst_type = RstType[rst_type]
 
         # compute track locations and create masters
         tr_manager = pinfo.tr_manager
@@ -601,7 +622,14 @@ class RstLatchCore(MOSBase):
         )
         params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
                       sig_locs=nor_sig_locs)
-        nor_master = self.new_template(NOR2Core, params=params)
+        if rst_type is RstType.RESET:
+            nor_master = self.new_template(NOR2Core, params=params)
+            rst_name = 'rst'
+        elif rst_type is RstType.SET:
+            nor_master = self.new_template(NAND2Core, params=params)
+            rst_name = 'setb'
+        else:
+            raise ValueError(f'Unknown rst_type={rst_type}. Use RESET (default) or SET.')
 
         key = 'in' if 'in' in sig_locs else ('nin' if 'nin' in sig_locs else 'pin')
         t0_sig_locs = dict(
@@ -696,9 +724,9 @@ class RstLatchCore(MOSBase):
         self.add_pin('outb', [nor.get_pin('in<1>'), mid_vm_warr], hide=True)
         self.add_pin('noutb', nor.get_pin('nin<1>'), hide=True)
         self.add_pin('poutb', nor.get_pin('nin<1>'), hide=True)
-        self.add_pin('rst', nor.get_pin('in<0>'))
-        self.add_pin('nrst', nor.get_pin('nin<0>'), hide=True)
-        self.add_pin('prst', nor.get_pin('nin<0>'), hide=True)
+        self.add_pin(rst_name, nor.get_pin('in<0>'))
+        self.add_pin(f'n{rst_name}', nor.get_pin('nin<0>'), hide=True)
+        self.add_pin(f'p{rst_name}', nor.get_pin('nin<0>'), hide=True)
         self.add_pin('mid_vm', mid_vm_warr, hide=True)
 
         self.add_pin('nclk', t0_en, label='clk:', hide=vertical_clk)
@@ -711,6 +739,7 @@ class RstLatchCore(MOSBase):
             tin=t0_master.sch_params,
             tfb=t1_master.sch_params,
             nor=nor_master.sch_params,
+            rst_type=rst_type,
         )
 
 
@@ -731,7 +760,7 @@ class RstLatchCore2Row(MOSBase):
         return ModuleDB.get_schematic_class('bag3_digital', 'scan_rst_latch')
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg='number of segments of output NOR.',
@@ -747,7 +776,7 @@ class RstLatchCore2Row(MOSBase):
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -776,7 +805,7 @@ class RstLatchCore2Row(MOSBase):
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
         scan: bool = self.params['scan']
@@ -1016,7 +1045,7 @@ class FlopCore2Row(MOSBase):
         return ModuleDB.get_schematic_class('bag3_digital', 'scan_rst_flop')
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg='number of segments of output inverter.',
@@ -1036,7 +1065,7 @@ class FlopCore2Row(MOSBase):
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -1062,7 +1091,7 @@ class FlopCore2Row(MOSBase):
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
         fanout_lat: float = self.params['fanout_lat']
@@ -1207,7 +1236,7 @@ class ScanRstLatchCore(MOSBase):
         return ModuleDB.get_schematic_class('bag3_digital', 'scan_rst_latch2')
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg_dict='Dictionary of number of segments.',
@@ -1220,7 +1249,7 @@ class ScanRstLatchCore(MOSBase):
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -1241,12 +1270,12 @@ class ScanRstLatchCore(MOSBase):
         # setup floorplan
         self.draw_base(pinfo)
 
-        seg_dict: Dict[str, int] = self.params['seg_dict']
+        seg_dict: Mapping[str, int] = self.params['seg_dict']
         w_p: int = self.params['w_p']
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         dual_output: bool = self.params['dual_output']
 
         # compute track locations and create masters
@@ -1441,7 +1470,7 @@ class ScanRstFlopCore(MOSBase):
         return ModuleDB.get_schematic_class('bag3_digital', 'scan_rst_flop')
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg_dict='Dictionary of number of segments.',
@@ -1454,7 +1483,7 @@ class ScanRstFlopCore(MOSBase):
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             w_p=0,
             w_n=0,
@@ -1467,12 +1496,12 @@ class ScanRstFlopCore(MOSBase):
     def draw_layout(self):
         pinfo = MOSBasePlaceInfo.make_place_info(self.grid, self.params['pinfo'])
 
-        seg_dict: Dict[str, int] = self.params['seg_dict']
+        seg_dict: Mapping[str, int] = self.params['seg_dict']
         w_p: int = self.params['w_p']
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Dict[str, float]] = self.params['sig_locs']
+        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         dual_output: bool = self.params['dual_output']
 
         # setup floorplan

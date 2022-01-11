@@ -18,6 +18,8 @@ from typing import Dict, Any, Mapping
 import pkg_resources
 from pathlib import Path
 
+from pybag.enum import TermType
+
 from bag.design.module import Module
 from bag.design.database import ModuleDB
 from bag.util.immutable import Param
@@ -45,16 +47,19 @@ class bag3_digital__strongarm_frontend(Module):
             w_dict='transistor width dictionary.',
             th_dict='transistor threshold dictionary.',
             has_rstb='True to add rstb functionality.',
+            has_tail_pc='True to add tail precharge switch',
             has_bridge='True to add bridge switch.',
             stack_br='Number of stacks in bridge switch.',
+            export_mid='True to export intermediate nodes',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Dict[str, Any]:
-        return dict(has_rstb=False, has_bridge=False, stack_br=1)
+        return dict(has_rstb=False, has_tail_pc=False, has_bridge=False, stack_br=1, export_mid=False)
 
     def design(self, lch: int, seg_dict: Mapping[str, int], w_dict: Mapping[str, int],
-               th_dict: Mapping[str, str], has_rstb: bool, has_bridge: bool, stack_br: int) -> None:
+               th_dict: Mapping[str, str], has_rstb: bool, has_tail_pc: bool, has_bridge: bool, stack_br: int,
+               export_mid: bool) -> None:
 
         for name in ['in', 'tail', 'nfb', 'pfb', 'swo', 'swm']:
             uname = name.upper()
@@ -98,5 +103,17 @@ class bag3_digital__strongarm_frontend(Module):
         else:
             self.remove_instance('XBR')
 
+        if has_tail_pc:
+            w = w_dict['swt']
+            seg = seg_dict['swt']
+            intent = th_dict['swt']
+            self.instances['XSWT'].design(l=lch, w=w, nf=seg, intent=intent)
+        else:
+            self.remove_instance('XSWT')
+
         if not has_rstb:
             self.remove_pin('rstb')
+
+        if export_mid:
+            for pin in ['midp', 'midn', 'tail']:
+                self.add_pin(pin, TermType.inout)

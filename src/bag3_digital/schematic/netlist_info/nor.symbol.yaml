@@ -114,8 +114,8 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 115
-        - 55
+        - 45
+        - 135
       alignment: 4
       orient: R0
       font: 5
@@ -123,7 +123,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: "[@partName]"
+      text: "[@cellName]"
       evaluator: cdsNLPEvalText
   -
     - 7
@@ -306,10 +306,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 486
+    - 489
   _dbvCvTimeStamp:
     - 0
-    - 486
+    - 489
   cdbRevision:
     - 0
     - 227612

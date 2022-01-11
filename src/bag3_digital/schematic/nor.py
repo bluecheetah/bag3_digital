@@ -64,6 +64,10 @@ class bag3_digital__nor(Module):
             num_in=2,
         )
 
+    def get_master_basename(self) -> str:
+        num_in: int = self.params['num_in']
+        return f'nor{num_in}'
+
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,
                th_n: str, num_in: int, stack_p: int, stack_n: int) -> None:
         if seg_p <= 0:

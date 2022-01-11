@@ -41,7 +41,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Any
+from typing import Mapping, Any, Union
 
 import pkg_resources
 from pathlib import Path
@@ -49,6 +49,8 @@ from pathlib import Path
 from bag.design.module import Module
 from bag.design.database import ModuleDB
 from bag.util.immutable import Param
+
+from ..layout.stdcells.util import RstType
 
 
 # noinspection PyPep8Naming
@@ -66,15 +68,38 @@ class bag3_digital__rst_latch(Module):
         Module.__init__(self, self.yaml_file, database, params, **kwargs)
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             tin='Input tristate inverter params',
             tfb='Feedback (keeper) tristate inverter params',
             nor='Output Nor params',
+            rst_type='SET or RESET; RESET by default',
         )
 
-    def design(self, tin: Dict[str, Any], tfb: Dict[str, Any], nor: Dict[str, Any]) -> None:
+    @classmethod
+    def get_default_param_values(cls) -> Mapping[str, Any]:
+        return dict(rst_type=RstType.RESET)
+
+    def get_master_basename(self) -> str:
+        rst_type: Union[str, RstType] = self.params['rst_type']
+        if isinstance(rst_type, str):
+            rst_type = RstType[rst_type]
+        if rst_type is RstType.SET:
+            return 'set_latch'
+        return 'rst_latch'
+
+    def design(self, tin: Mapping[str, Any], tfb: Mapping[str, Any], nor: Mapping[str, Any],
+               rst_type: Union[str, RstType]) -> None:
         self.instances['XTBUF'].design(**tin)
         self.instances['XTFB'].design(**tfb)
-        self.instances['XNOR'].design(**nor)
         self.instances['XCM'].design(nin=2)
+
+        if isinstance(rst_type, str):
+            rst_type = RstType[rst_type]
+        if rst_type is RstType.SET:
+            self.replace_instance_master('XNOR', 'bag3_digital', 'nand', keep_connections=True)
+            self.rename_instance('XNOR', 'XNAND', [(f'in<1:0>', 'outb,setb')])
+            self.instances['XNAND'].design(**nor)
+            self.rename_pin('rst', 'setb')
+        else:
+            self.instances['XNOR'].design(**nor)

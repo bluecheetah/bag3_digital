@@ -612,7 +612,6 @@ class RstLatchCore(MOSBase):
             seg = seg_dict['nor']
             seg_t1 = seg_dict['keep']
             seg_t0 = seg_dict['in']
-        print(f'nor:{seg}, keep: {seg_t1}, in: {seg_t0}')
 
         nor_sig_locs = dict(
             nin0=sig_locs.get('rst', pg2),

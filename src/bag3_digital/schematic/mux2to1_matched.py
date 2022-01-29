@@ -15,7 +15,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Dict, Any, Optional
+from typing import Mapping, Any, Optional
 
 import pkg_resources
 from pathlib import Path
@@ -40,7 +40,7 @@ class bag3_digital__mux2to1_matched(Module):
         Module.__init__(self, self.yaml_file, database, params, **kwargs)
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             inv_params='Output inverter parameters',
             tri_params='Tristate inverter parameters',
@@ -48,7 +48,7 @@ class bag3_digital__mux2to1_matched(Module):
         )
 
     @classmethod
-    def get_default_param_values(cls):
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             sel_params=None,
         )

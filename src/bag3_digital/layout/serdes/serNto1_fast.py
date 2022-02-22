@@ -34,7 +34,8 @@ class SerNto1Fast(MOSBase):
             seg_dict='Dictionary of segments',
             ratio='Number of serialized inputs',
             export_nets='True to export intermediate nets',
-            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.'
+            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.',
+            is_rst_async='True if asynchronous rst input; False if synchronous rstb input. True by default',
         )
 
     @classmethod
@@ -44,6 +45,7 @@ class SerNto1Fast(MOSBase):
             ridx_n=0,
             export_nets=False,
             tap_sep_flop=-1,
+            is_rst_async=True
         )
 
     def draw_layout(self) -> None:
@@ -58,6 +60,7 @@ class SerNto1Fast(MOSBase):
         tap_sep_flop: int = self.params['tap_sep_flop']
         if tap_sep_flop <= 0:
             tap_sep_flop = ratio >> 1
+        is_rst_async: bool = self.params['is_rst_async']
 
         # --- Make masters --- #
         # flops
@@ -295,22 +298,42 @@ class SerNto1Fast(MOSBase):
 
             cur_col = max(cur_col0, cur_col1, cur_col2)
 
-        # flops for reset synchronizer
-        cur_col += blk_sp
-        rst_ff0 = self.add_tile(ff_rst_master, 0, cur_col + ff_rst_ncols, flip_lr=True)
-        clkb_list0.append(rst_ff0.get_pin('clk'))
-        clk_list0.append(rst_ff0.get_pin('clkb'))
-        self.connect_to_track_wires(inv_r.get_pin('in'), rst_ff0.get_pin('out'))
+        inst0_list = [inv_r, inv_en]
+        inst1_list = []
 
-        cur_col += ff_rst_ncols + blk_sp  # extra blk_sp so that rst_ff1 output on vm_layer can go down to rst_ff0 input
-        rst_ff1 = self.add_tile(ff_rst_master, 1, cur_col - ff_rst_ncols)
-        rst_ff1_clkb = rst_ff1.get_pin('clk')
-        clkb_list1.append(rst_ff1_clkb)
-        clk_list1.append(rst_ff1.get_pin('clkb'))
-        _in_vm_tid = self.tr_manager.get_next_track_obj(rst_ff1_clkb, 'sig', 'sig', -1)
-        self.connect_to_tracks([rst_ff1.get_pin('nin'), rst_ff1.get_pin('VDD')], _in_vm_tid)
-        rst_ff1_out = rst_ff1.get_pin('out')
-        self.connect_to_track_wires(rst_ff0.get_pin('nin'), rst_ff1_out)
+        # flops for reset synchronizer
+        if is_rst_async:
+            cur_col += blk_sp
+            rst_ff0 = self.add_tile(ff_rst_master, 0, cur_col + ff_rst_ncols, flip_lr=True)
+            inst0_list.append(rst_ff0)
+            clkb_list0.append(rst_ff0.get_pin('clk'))
+            clk_list0.append(rst_ff0.get_pin('clkb'))
+            self.connect_to_track_wires(inv_r.get_pin('in'), rst_ff0.get_pin('out'))
+
+            # extra blk_sp so that rst_ff1 output on vm_layer can go down to rst_ff0 input
+            cur_col += ff_rst_ncols + blk_sp
+            rst_ff1 = self.add_tile(ff_rst_master, 1, cur_col - ff_rst_ncols)
+            inst1_list.append(rst_ff1)
+            rst_ff1_clkb = rst_ff1.get_pin('clk')
+            clkb_list1.append(rst_ff1_clkb)
+            clk_list1.append(rst_ff1.get_pin('clkb'))
+            _in_vm_tid = self.tr_manager.get_next_track_obj(rst_ff1_clkb, 'sig', 'sig', -1)
+            self.connect_to_tracks([rst_ff1.get_pin('nin'), rst_ff1.get_pin('VDD')], _in_vm_tid)
+            rst_ff1_out = rst_ff1.get_pin('out')
+            self.connect_to_track_wires(rst_ff0.get_pin('nin'), rst_ff1_out)
+
+            rstb_in_vm = None
+
+            rst_sync_sch_params = dict(ff=ff_rst_master.sch_params, buf=inv_r_master.sch_params)
+            _p0_ym_idx = -3
+        else:
+            rst_ff1_out = None
+            rst_ff0 = rst_ff1 = None
+            _tid = self.tr_manager.get_next_track_obj(inv_r.get_pin('outb'), 'sig', 'sig', 1)
+            rstb_in_vm = self.connect_to_tracks(inv_r.get_pin('in'), _tid)
+
+            rst_sync_sch_params = inv_r_master.sch_params
+            _p0_ym_idx = -2
 
         # clock inverters chains
         cur_col += blk_sp + inv_clk_ncols
@@ -323,6 +346,9 @@ class SerNto1Fast(MOSBase):
         invf_00 = self.add_tile(inv_0_master, 0, cur_col, flip_lr=True)
         invf_10 = self.add_tile(inv_0_master, 1, cur_col, flip_lr=True)
         invs_0 = self.add_tile(inv_0_master, 2, cur_col, flip_lr=True)
+
+        inst0_list.extend([invf_01, invf_00])
+        inst1_list.extend([invf_11, invf_10])
 
         # right tap
         cur_col += sub_sep
@@ -338,10 +364,10 @@ class SerNto1Fast(MOSBase):
         # supplies
         vss_hm_list = [[] for _ in range(num_tiles)]
         vdd_hm_list = [[] for _ in range(num_tiles)]
-        for inst in chain(ff_rst_list, [invf_01, invf_00, inv_r, inv_en, rst_ff0]):
+        for inst in chain(ff_rst_list, inst0_list):
             vss_hm_list[0].append(inst.get_pin('VSS'))
             vdd_hm_list[0].append(inst.get_pin('VDD'))
-        for inst in chain(ff_f_list, tinv_f_list, [invf_11, invf_10, rst_ff1]):
+        for inst in chain(ff_f_list, tinv_f_list, inst1_list):
             vss_hm_list[1].append(inst.get_pin('VSS'))
             vdd_hm_list[1].append(inst.get_pin('VDD'))
         for inst in chain(ff_s_list, tinv_s_list, [invs_1, invs_0]):
@@ -358,7 +384,7 @@ class SerNto1Fast(MOSBase):
         self.add_pin('VSS_ym', vss_dict[ym_layer], hide=True)
 
         # find xm_layer and xxm_layer tracks using supply tracks as reference
-        xm_locs0 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'sig', 'clk', 'sup'],
+        xm_locs0 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'clk', 'clk', 'sup'],
                                                 lower=vss_dict[xm_layer][0].track_id.base_index,
                                                 upper=vdd_dict[xm_layer][0].track_id.base_index, sp_type=('clk', 'clk'))
         xm_locs1 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'clk', 'clk', 'sup'],
@@ -410,7 +436,7 @@ class SerNto1Fast(MOSBase):
         # clk
         clk_in_vm = self.connect_to_tracks([invf_00.get_pin('nin'), invf_10.get_pin('nin')],
                                            TrackID(vm_layer, clk_vm_locs[-1], w_clk_vm), min_len_mode=MinLenMode.MIDDLE)
-        clk_in_xm = self.connect_to_tracks(clk_in_vm, TrackID(xm_layer, xm_locs0[2], w_clk_xm),
+        clk_in_xm = self.connect_to_tracks(clk_in_vm, TrackID(xm_layer, xm_locs0[-3], w_clk_xm),
                                            min_len_mode=MinLenMode.UPPER)
         self.add_pin('clk', clk_in_xm)
 
@@ -444,7 +470,7 @@ class SerNto1Fast(MOSBase):
                                         min_len_mode=MinLenMode.UPPER)
         en_xm1 = self.connect_to_tracks(en_list[:-1], TrackID(xm_layer, xm_locs1[2], w_clk_xm))
         en_dict = self.connect_up(en_list[:-1], en_xm1, xxm_locs1[2], 'sig', MinLenMode.UPPER)
-        en_ym_tid = self.tr_manager.get_next_track_obj(clkb_dict1[ym_layer][-3], 'sig', 'clk', 1)
+        en_ym_tid = self.tr_manager.get_next_track_obj(clkb_dict1[ym_layer][_p0_ym_idx], 'sig', 'clk', 1)
         self.connect_to_tracks([en_xm0, en_xm1, en_dict[xxm_layer]], en_ym_tid)
         self.add_pin('p0_buf', en_dict[xxm_layer], hide=not export_nets, mode=PinMode.LOWER)
 
@@ -452,7 +478,7 @@ class SerNto1Fast(MOSBase):
                                          min_len_mode=MinLenMode.LOWER)
         enb_xm1 = self.connect_to_tracks(enb_list[:-1], TrackID(xm_layer, xm_locs1[-3], w_clk_xm))
         enb_dict = self.connect_up(enb_list[:-1], enb_xm1, xxm_locs1[-3], 'sig', MinLenMode.LOWER)
-        enb_ym_tid = self.tr_manager.get_next_track_obj(clk_dict1[ym_layer][-3], 'sig', 'clk', -1)
+        enb_ym_tid = self.tr_manager.get_next_track_obj(clk_dict1[ym_layer][_p0_ym_idx], 'sig', 'clk', -1)
         self.connect_to_tracks([enb_xm0, enb_xm1, enb_dict[xxm_layer]], enb_ym_tid)
         # hidden pins on p0b_buf ym_layer for top level routing
         for idx in range(ratio - 1):
@@ -460,26 +486,31 @@ class SerNto1Fast(MOSBase):
         self.add_pin(f'right_ym<{ratio - 1}>', clkb_dict0[ym_layer][1], hide=True)
 
         # reset
-        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
         self.connect_wires(rst_hm_list)
-        rst_sync_xm = self.connect_to_tracks(rst_vm_list, TrackID(xm_layer, xm_locs0[-3], w_sig_xm))
+        rst_sync_xm = self.connect_to_tracks(rst_vm_list, TrackID(xm_layer, xm_locs0[-3], w_clk_xm))
         self.add_pin('rst_sync', rst_sync_xm, hide=not export_nets, mode=PinMode.LOWER)
 
-        w_sig_ym = self.tr_manager.get_width(ym_layer, 'sig')
-        rst_vm_tid = self.tr_manager.get_next_track_obj(rst_ff1_out, 'sig', 'sig', 1)
-        rst_vm = self.connect_to_tracks([rst_ff0.get_pin('prst'), rst_ff1.get_pin('prst')], rst_vm_tid)
-        rst_xm = self.connect_to_tracks(rst_vm, TrackID(xm_layer, xm_locs0[-3], w_sig_xm),
-                                        min_len_mode=MinLenMode.MIDDLE)
-        rst_ym_tidx = self.grid.coord_to_track(ym_layer, rst_xm.middle, RoundMode.NEAREST)
-        rst_ym = self.connect_to_tracks(rst_xm, TrackID(ym_layer, rst_ym_tidx, w_sig_ym),
-                                        min_len_mode=MinLenMode.MIDDLE)
-        self.add_pin('rst', rst_ym)
+        if is_rst_async:
+            w_sig_ym = self.tr_manager.get_width(ym_layer, 'sig')
+            rst_vm_tid = self.tr_manager.get_next_track_obj(rst_ff1_out, 'sig', 'sig', 1)
+            rst_vm = self.connect_to_tracks([rst_ff0.get_pin('prst'), rst_ff1.get_pin('prst')], rst_vm_tid)
+            rst_xm = self.connect_to_tracks(rst_vm, TrackID(xm_layer, xm_locs1[2], w_clk_xm),
+                                            min_len_mode=MinLenMode.MIDDLE)
+            rst_ym_tidx = self.grid.coord_to_track(ym_layer, rst_xm.middle, RoundMode.NEAREST)
+            rst_ym = self.connect_to_tracks(rst_xm, TrackID(ym_layer, rst_ym_tidx, w_sig_ym),
+                                            min_len_mode=MinLenMode.MIDDLE)
+            self.add_pin('rst', rst_ym)
+        else:
+            rstb_in = self.connect_to_tracks(rstb_in_vm, TrackID(xm_layer, xm_locs0[2], w_clk_xm),
+                                             min_len_mode=MinLenMode.UPPER)
+            self.add_pin('rstb_sync_in', rstb_in)
 
         # output
-        dout = self.connect_to_tracks(dout_vm, TrackID(xm_layer, xm_locs1[2], w_clk_xm), min_len_mode=MinLenMode.UPPER)
+        dout = self.connect_to_tracks(dout_vm, TrackID(xm_layer, xm_locs1[-3], w_clk_xm), min_len_mode=MinLenMode.UPPER)
         self.add_pin('dout', dout)
 
         # inputs on xm_layer
+        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
         in_xm_tid = TrackID(xm_layer, xm_locs2[2], w_sig_xm)
         for idx, in_vm in enumerate(in_list):
             in_xm = self.connect_to_tracks(in_vm, in_xm_tid, min_len_mode=MinLenMode.MIDDLE)
@@ -489,7 +520,7 @@ class SerNto1Fast(MOSBase):
         self.sch_params = dict(
             ff_rst=ff_rst_master.sch_params,
             ff_set=ff_set_master.sch_params,
-            rst_sync=dict(ff=ff_rst_master.sch_params, buf=inv_r_master.sch_params),
+            rst_sync=rst_sync_sch_params,
             inv_d=inv_d_sch,
             inv_en=inv_en_master.sch_params,
             ff=ff_master.sch_params,
@@ -498,6 +529,7 @@ class SerNto1Fast(MOSBase):
             inv_clk_div=dict(inv_params=[inv_0_master.sch_params, inv_1_master.sch_params], dual_output=True),
             ratio=ratio,
             export_nets=export_nets,
+            is_rst_async=is_rst_async,
         )
 
     def connect_supplies(self, vdd_hm: WireArray, vss_hm: WireArray, sup_coords: Sequence[int], xh: int, yh: int

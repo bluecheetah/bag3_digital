@@ -77,11 +77,12 @@ class bag3_digital__serNto1_fast(Module):
             inv_clk_div='Parameters for divided clock inverter chain',
             ratio='Number of serialized inputs/deserialized outputs',
             export_nets='True to export intermediate nets; False by default',
+            is_rst_async='True if asynchronous rst input; False if synchronous rstb input. True by default',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
-        return dict(export_nets=False)
+        return dict(export_nets=False, is_rst_async=True)
 
     def get_master_basename(self) -> str:
         ratio: int = self.params['ratio']
@@ -89,7 +90,8 @@ class bag3_digital__serNto1_fast(Module):
 
     def design(self, ff_rst: Mapping[str, Any], ff_set: Mapping[str, Any], rst_sync: Mapping[str, Any],
                inv_d: Mapping[str, Any], inv_en: Mapping[str, Any], ff: Mapping[str, Any], tinv: Mapping[str, Any],
-               inv_clk: Mapping[str, Any], inv_clk_div: Mapping[str, Any], ratio: int, export_nets: bool) -> None:
+               inv_clk: Mapping[str, Any], inv_clk_div: Mapping[str, Any], ratio: int, export_nets: bool,
+               is_rst_async: bool) -> None:
         """To be overridden by subclasses to design this module.
 
         This method should fill in values for all parameters in
@@ -106,8 +108,14 @@ class bag3_digital__serNto1_fast(Module):
         array_instance()
         """
         # reset sync
-        self.instances['XRST_SYNC'].design(**rst_sync)
-        self.reconnect_instance_terminal('XRST_SYNC', 'clkb', 'clk_buf')
+        if is_rst_async:
+            self.instances['XRST_SYNC'].design(**rst_sync)
+            self.reconnect_instance_terminal('XRST_SYNC', 'clkb', 'clk_buf')
+        else:
+            self.replace_instance_master('XRST_SYNC', 'bag3_digital', 'inv_chain', keep_connections=True)
+            self.instances['XRST_SYNC'].design(**rst_sync)
+            self.reconnect_instance('XRST_SYNC', [('in', 'rstb_sync_in'), ('outb', 'rst_sync'), ('out', 'rstb_sync')])
+            self.rename_pin('rst', 'rstb_sync_in')
 
         # clock buffers
         self.instances['XINVD'].design(**inv_clk_div)

@@ -67,6 +67,7 @@ class bag3_digital__ser2Nto1_fast(Module):
         """
         return dict(
             ser='Parameters for each serNto1',
+            rst_sync='Parameters for reset_sync',
             tinv='Parameters for each inv_tristate',
             inv='Parameters for data inverter',
             export_nets='True to export intermediate nets; False by default',
@@ -80,8 +81,8 @@ class bag3_digital__ser2Nto1_fast(Module):
         ratio: int = self.params['ser']['ratio']
         return f'ser_{2 * ratio}to1'
 
-    def design(self, ser: Mapping[str, Any], tinv: Mapping[str, Any], inv: Mapping[str, Any], export_nets: bool
-               ) -> None:
+    def design(self, ser: Mapping[str, Any], rst_sync: Mapping[str, Any], tinv: Mapping[str, Any],
+               inv: Mapping[str, Any], export_nets: bool) -> None:
         """To be overridden by subclasses to design this module.
 
         This method should fill in values for all parameters in
@@ -107,9 +108,14 @@ class bag3_digital__ser2Nto1_fast(Module):
         # data inverter
         self.instances['XINV'].design(**inv)
 
+        # reset_sync
+        self.instances['XRST_SYNC'].design(**rst_sync)
+        self.reconnect_instance_terminal('XRST_SYNC', 'clkb', 'clkb')
+
         # serNto1
-        self.instances['XSER0'].design(**ser)
-        self.instances['XSER1'].design(**ser)
+        for idx in range(2):
+            self.instances[f'XSER{idx}'].design(**ser)
+            self.reconnect_instance_terminal(f'XSER{idx}', 'rstb_sync_in', 'rstb_sync')
         ratio: int = self.params['ser']['ratio']
 
         self.rename_pin('din', f'din<{2 * ratio - 1}:0>')
@@ -119,3 +125,4 @@ class bag3_digital__ser2Nto1_fast(Module):
 
         if export_nets:
             self.add_pin('ser_out<1:0>', TermType.output)
+            self.add_pin('rstb_sync', TermType.output)

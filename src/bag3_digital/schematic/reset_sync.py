@@ -30,7 +30,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Mapping, Any
+from typing import Mapping, Any, Optional
 
 import pkg_resources
 from pathlib import Path
@@ -67,15 +67,15 @@ class bag3_digital__reset_sync(Module):
         """
         return dict(
             ff='Parameters for rst_flop',
-            buf='Parameters for inverter chain',
+            buf='Optional parameters for inverter chain; None to remove buffers',
             reset_priority='"high" or "low"; "high" by default',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
-        return dict(reset_priority='high')
+        return dict(reset_priority='high', buf=None)
 
-    def design(self, ff: Mapping[str, Any], buf: Mapping[str, Any], reset_priority: str) -> None:
+    def design(self, ff: Mapping[str, Any], buf: Optional[Mapping[str, Any]], reset_priority: str) -> None:
         """To be overridden by subclasses to design this module.
 
         This method should fill in values for all parameters in
@@ -97,7 +97,12 @@ class bag3_digital__reset_sync(Module):
         self.reconnect_instance_terminal('XFF1', 'clkb', 'clkb')
         self.add_pin('clkb', TermType.input)
 
-        self.instances['XBUF'].design(**buf)
+        if buf:
+            self.instances['XBUF'].design(**buf)
+        else:
+            self.remove_instance('XBUF')
+            self.reconnect_instance_terminal('XFF1', 'out', 'rstb_sync')
+            self.remove_pin('rst_sync')
 
         if reset_priority == 'high':
             self.reconnect_instance_terminal('XFF0', 'in', 'VDD')

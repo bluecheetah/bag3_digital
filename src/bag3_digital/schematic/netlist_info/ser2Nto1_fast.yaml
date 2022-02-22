@@ -3,7 +3,7 @@ cell_name: ser2Nto1_fast
 view_name: schematic
 bbox:
   - -1261
-  - -400
+  - -570
   - 600
   - 260
 terminals:
@@ -531,7 +531,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: rst
+      net: rst_sync
       points:
         -
           - -760
@@ -543,7 +543,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: rst
+      net: rst_sync
       origin:
         - -724
         - -273
@@ -554,7 +554,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: rst
+      text: rst_sync
   -
     - 5
     - layer: 228
@@ -727,7 +727,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: rst
+      net: rst_sync
       points:
         -
           - -760
@@ -739,7 +739,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: rst
+      net: rst_sync
       origin:
         - -724
         - 67
@@ -750,7 +750,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: rst
+      text: rst_sync
   -
     - 5
     - layer: 228
@@ -1231,6 +1231,202 @@ shapes:
       visible: true
       drafting: true
       text: nc
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - -1020
+          - -570
+        -
+          - -1020
+          - -530
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - -1027
+        - -534
+      alignment: 8
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - -1020
+          - -330
+        -
+          - -1020
+          - -290
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -1027
+        - -326
+      alignment: 2
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst_sync
+      points:
+        -
+          - -840
+          - -410
+        -
+          - -800
+          - -410
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst_sync
+      origin:
+        - -836
+        - -403
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst_sync
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rstb_sync
+      points:
+        -
+          - -840
+          - -390
+        -
+          - -800
+          - -390
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rstb_sync
+      origin:
+        - -836
+        - -383
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rstb_sync
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk
+      points:
+        -
+          - -1220
+          - -470
+        -
+          - -1180
+          - -470
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk
+      origin:
+        - -1184
+        - -463
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - -1220
+          - -390
+        -
+          - -1180
+          - -390
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -1184
+        - -383
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst
+      points:
+        -
+          - -1220
+          - -490
+        -
+          - -1180
+          - -490
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst
+      origin:
+        - -1184
+        - -483
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst
 instances:
   XCS:
     lib_name: xbase
@@ -1290,6 +1486,30 @@ instances:
     params:
       {}
     is_primitive: true
+  XRST_SYNC:
+    lib_name: bag3_digital
+    cell_name: reset_sync
+    view_name: symbol
+    xform:
+      - -1180
+      - -530
+      - R0
+    bbox:
+      - -1184
+      - -534
+      - -836
+      - -326
+    connections:
+      VDD: VDD
+      VSS: VSS
+      clk: clk
+      din: VDD
+      rst_async: rst
+      rst_sync: rst_sync
+      rstb_sync: rstb_sync
+    params:
+      {}
+    is_primitive: false
   XSER0:
     lib_name: bag3_digital
     cell_name: serNto1_fast
@@ -1311,7 +1531,7 @@ instances:
       clk_div_buf: nc
       din: din
       dout: ser_out<0>
-      rst: rst
+      rst: rst_sync
     params:
       {}
     is_primitive: false
@@ -1336,7 +1556,7 @@ instances:
       clk_div_buf: clk_div_buf
       din: din
       dout: ser_out<1>
-      rst: rst
+      rst: rst_sync
     params:
       {}
     is_primitive: false
@@ -1389,13 +1609,13 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 5486
+    - 6152
   instance#:
     - 0
     - 2
   lastSchematicExtraction:
     - 4
-    - time_val: 1628645375
+    - time_val: 1645472042
   net#:
     - 0
     - 0
@@ -1404,7 +1624,7 @@ props:
     - 10
   schGeometryLastUpdated:
     - 0
-    - 5486
+    - 6152
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1414,10 +1634,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 5486
+    - 6152
   _dbvCvTimeStamp:
     - 0
-    - 5486
+    - 6152
   cdbRevision:
     - 0
     - 227612

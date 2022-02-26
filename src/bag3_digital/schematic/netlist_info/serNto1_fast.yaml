@@ -55,13 +55,13 @@ terminals:
           view_name: symbolr
           xform:
             - -850
-            - 590
+            - 550
             - R0
           bbox:
             - -911
-            - 564
+            - 524
             - -840
-            - 600
+            - 560
           connections:
             {}
           params:
@@ -73,7 +73,7 @@ terminals:
           net: ""
           origin:
             - -875
-            - 590
+            - 550
           alignment: 7
           orient: R0
           font: 5
@@ -124,6 +124,45 @@ terminals:
           format: 1
     stype: 0
     ttype: 0
+  clk_buf:
+    obj:
+      - 1
+      - inst:
+          lib_name: basic
+          cell_name: opin
+          view_name: symbol
+          xform:
+            - -810
+            - 710
+            - R0
+          bbox:
+            - -810
+            - 684
+            - -753
+            - 720
+          connections:
+            {}
+          params:
+            {}
+          is_primitive: true
+        attr:
+          layer: 229
+          purpose: 237
+          net: ""
+          origin:
+            - -785
+            - 710
+          alignment: 1
+          orient: R0
+          font: 5
+          height: 10
+          overbar: false
+          visible: true
+          drafting: true
+          attr_type: 0
+          format: 1
+    stype: 0
+    ttype: 1
   clk_div:
     obj:
       - 1
@@ -133,13 +172,13 @@ terminals:
           view_name: symbol
           xform:
             - -910
-            - 670
+            - 630
             - R0
           bbox:
             - -967
-            - 644
+            - 604
             - -910
-            - 680
+            - 640
           connections:
             {}
           params:
@@ -151,7 +190,7 @@ terminals:
           net: ""
           origin:
             - -940
-            - 670
+            - 630
           alignment: 7
           orient: R0
           font: 5
@@ -164,6 +203,45 @@ terminals:
     stype: 0
     ttype: 0
   clk_div_buf:
+    obj:
+      - 1
+      - inst:
+          lib_name: basic
+          cell_name: opin
+          view_name: symbol
+          xform:
+            - -810
+            - 630
+            - R0
+          bbox:
+            - -810
+            - 604
+            - -753
+            - 640
+          connections:
+            {}
+          params:
+            {}
+          is_primitive: true
+        attr:
+          layer: 229
+          purpose: 237
+          net: ""
+          origin:
+            - -785
+            - 630
+          alignment: 1
+          orient: R0
+          font: 5
+          height: 10
+          overbar: false
+          visible: true
+          drafting: true
+          attr_type: 0
+          format: 1
+    stype: 0
+    ttype: 1
+  clkb_buf:
     obj:
       - 1
       - inst:
@@ -289,13 +367,13 @@ terminals:
           view_name: symbol
           xform:
             - -910
-            - 630
+            - 590
             - R0
           bbox:
             - -967
-            - 604
+            - 564
             - -910
-            - 640
+            - 600
           connections:
             {}
           params:
@@ -307,7 +385,7 @@ terminals:
           net: ""
           origin:
             - -940
-            - 630
+            - 590
           alignment: 7
           orient: R0
           font: 5
@@ -2330,22 +2408,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 12804
+    - 14738
   instance#:
     - 0
     - 4
   lastSchematicExtraction:
     - 4
-    - time_val: 1628644968
+    - time_val: 1645829450
   net#:
     - 0
     - 0
   pin#:
     - 0
-    - 8
+    - 10
   schGeometryLastUpdated:
     - 0
-    - 12804
+    - 14738
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -2355,10 +2433,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 12804
+    - 14738
   _dbvCvTimeStamp:
     - 0
-    - 12804
+    - 14738
   cdbRevision:
     - 0
     - 227612

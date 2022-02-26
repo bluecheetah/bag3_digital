@@ -839,10 +839,10 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clk
+      net: clk_buf<1>
       points:
         -
-          - -330
+          - -340
           - 120
         -
           - -290
@@ -851,9 +851,37 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: clk
+      net: clk_buf<1>
       origin:
-        - -294
+        - -324
+        - 107
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_buf<1>
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb_buf<1>
+      points:
+        -
+          - -350
+          - 160
+        -
+          - -290
+          - 160
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clkb_buf<1>
+      origin:
+        - -314
         - 127
       alignment: 8
       orient: R0
@@ -862,35 +890,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clk
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: clkb
-      points:
-        -
-          - -330
-          - 160
-        -
-          - -290
-          - 160
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: clkb
-      origin:
-        - -294
-        - 167
-      alignment: 8
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: clkb
+      text: clkb_buf<1>
   -
     - 5
     - layer: 228
@@ -1007,58 +1007,50 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clkb
+      net: clkb_buf<0>
       points:
         -
-          - -330
+          - -340
           - -220
         -
           - -290
           - -220
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: clkb
-      origin:
-        - -294
-        - -213
-      alignment: 8
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: clkb
   -
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clk
+      net: clk_buf<0>
       points:
         -
-          - -330
+          - -420
+          - -220
+        -
+          - -360
+          - -220
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk_buf<0>
+      points:
+        -
+          - -360
           - -180
         -
           - -290
           - -180
   -
-    - 7
+    - 5
     - layer: 228
-      purpose: 237
-      net: clk
-      origin:
-        - -294
-        - -173
-      alignment: 8
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: clk
+      purpose: 4294967295
+      net: clk_buf<1>
+      points:
+        -
+          - -340
+          - 100
+        -
+          - -340
+          - 120
   -
     - 5
     - layer: 228
@@ -1427,6 +1419,110 @@ shapes:
       visible: true
       drafting: true
       text: rst
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk_buf<0>
+      points:
+        -
+          - -360
+          - -220
+        -
+          - -360
+          - -180
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk_buf<0>
+      origin:
+        - -416
+        - -213
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_buf<0>
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb_buf<0>
+      points:
+        -
+          - -340
+          - -240
+        -
+          - -340
+          - -220
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clkb_buf<0>
+      origin:
+        - -415
+        - -233
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clkb_buf<0>
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb_buf<0>
+      points:
+        -
+          - -420
+          - -240
+        -
+          - -340
+          - -240
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk_buf<1>
+      points:
+        -
+          - -420
+          - 100
+        -
+          - -340
+          - 100
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb_buf<1>
+      points:
+        -
+          - -350
+          - 120
+        -
+          - -350
+          - 160
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb_buf<1>
+      points:
+        -
+          - -420
+          - 120
+        -
+          - -350
+          - 120
 instances:
   XCS:
     lib_name: xbase
@@ -1527,8 +1623,10 @@ instances:
       VDD: VDD
       VSS: VSS
       clk: clk
+      clk_buf: clk_buf<0>
       clk_div: clk_div
       clk_div_buf: nc
+      clkb_buf: clkb_buf<0>
       din: din
       dout: ser_out<0>
       rst: rst_sync
@@ -1552,8 +1650,10 @@ instances:
       VDD: VDD
       VSS: VSS
       clk: clkb
+      clk_buf: clkb_buf<1>
       clk_div: clk_div
       clk_div_buf: clk_div_buf
+      clkb_buf: clk_buf<1>
       din: din
       dout: ser_out<1>
       rst: rst_sync
@@ -1576,8 +1676,8 @@ instances:
     connections:
       VDD: VDD
       VSS: VSS
-      en: clkb
-      enb: clk
+      en: clkb_buf<0>
+      enb: clk_buf<0>
       in: ser_out<0>
       out: tinv_out<0>
     params:
@@ -1599,8 +1699,8 @@ instances:
     connections:
       VDD: VDD
       VSS: VSS
-      en: clk
-      enb: clkb
+      en: clk_buf<1>
+      enb: clkb_buf<1>
       in: ser_out<1>
       out: tinv_out<1>
     params:
@@ -1609,22 +1709,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 6152
+    - 6929
   instance#:
     - 0
     - 2
   lastSchematicExtraction:
     - 4
-    - time_val: 1645472042
+    - time_val: 1645829826
   net#:
     - 0
-    - 0
+    - 13
   pin#:
     - 0
     - 10
   schGeometryLastUpdated:
     - 0
-    - 6152
+    - 6929
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1634,10 +1734,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 6152
+    - 6929
   _dbvCvTimeStamp:
     - 0
-    - 6152
+    - 6929
   cdbRevision:
     - 0
     - 227612

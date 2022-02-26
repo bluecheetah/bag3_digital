@@ -168,37 +168,31 @@ class Ser2Nto1Fast(MOSBase):
         self.connect_to_track_wires(rst_ff0.get_pin('nin'), rst_ff1_out)
 
         # get xm_layer tracks
-        xm_locs0 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'clk', 'clk', 'sup'],
-                                                lower=vdd_xm[0].track_id.base_index,
-                                                upper=vss_xm[1].track_id.base_index, sp_type=('clk', 'clk'))
-        xm_locs1 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'sig', 'clk', 'clk', 'sup'],
+        xm_locs0 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'sig', 'clk', 'clk', 'sup'],
                                                 lower=vss_xm[1].track_id.base_index,
                                                 upper=vdd_xm[1].track_id.base_index, sp_type=('clk', 'clk'))
-        xm_locs2 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'sig', 'clk', 'sup'],
+        xm_locs1 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'sig', 'clk', 'sup'],
                                                 lower=vdd_xm[1].track_id.base_index,
                                                 upper=vss_xm[2].track_id.base_index, sp_type=('clk', 'clk'))
-        xm_locs3 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'clk', 'clk', 'sup'],
-                                                lower=vss_xm[2].track_id.base_index,
-                                                upper=vdd_xm[2].track_id.base_index, sp_type=('clk', 'clk'))
 
         # rst
         rst_vm_tid = self.tr_manager.get_next_track_obj(rst_ff1_out, 'sig', 'sig', 1)
         rst_vm = self.connect_to_tracks([rst_ff0.get_pin('prst'), rst_ff1.get_pin('prst')], rst_vm_tid)
         rst_ym = self.connect_via_stack(self.tr_manager, rst_vm, ym_layer,
-                                        coord_list_o_override=[self.grid.track_to_coord(xm_layer, xm_locs1[2]),
-                                                               self.grid.track_to_coord(xm_layer, xm_locs2[-3])])
+                                        coord_list_o_override=[self.grid.track_to_coord(xm_layer, xm_locs0[2]),
+                                                               self.grid.track_to_coord(xm_layer, xm_locs1[-3])])
         self.add_pin('rst', rst_ym, mode=PinMode.LOWER)
 
         # clk and clkb from reset synchronizer flops
         w_clk_xm = self.tr_manager.get_width(xm_layer, 'clk')
-        rst0_clk = self.connect_to_tracks(rst_ff0.get_pin('clk'), TrackID(xm_layer, xm_locs1[-2], w_clk_xm),
+        rst0_clk = self.connect_to_tracks(rst_ff0.get_pin('clk'), TrackID(xm_layer, xm_locs0[-2], w_clk_xm),
                                           min_len_mode=MinLenMode.MIDDLE)
-        rst0_clkb = self.connect_to_tracks(rst_ff0.get_pin('clkb'), TrackID(xm_layer, xm_locs1[1], w_clk_xm),
+        rst0_clkb = self.connect_to_tracks(rst_ff0.get_pin('clkb'), TrackID(xm_layer, xm_locs0[1], w_clk_xm),
                                            min_len_mode=MinLenMode.MIDDLE)
-        rst1_clk = self.connect_to_tracks(rst_ff1.get_pin('clk'), TrackID(xm_layer, xm_locs2[1], w_clk_xm),
+        rst1_clk = self.connect_to_tracks(rst_ff1.get_pin('clk'), TrackID(xm_layer, xm_locs1[1], w_clk_xm),
                                           min_len_mode=MinLenMode.MIDDLE)
         rst1_clkb_vm = rst_ff1.get_pin('clkb')
-        rst1_clkb = self.connect_to_tracks(rst1_clkb_vm, TrackID(xm_layer, xm_locs2[-2], w_clk_xm),
+        rst1_clkb = self.connect_to_tracks(rst1_clkb_vm, TrackID(xm_layer, xm_locs1[-2], w_clk_xm),
                                            min_len_mode=MinLenMode.MIDDLE)
 
         # input of rst_ff1
@@ -208,24 +202,24 @@ class Ser2Nto1Fast(MOSBase):
         # clk and clkb from tristate inverters
         tinv0_clk_vm = self.connect_to_tracks(tinv0.get_pin('enb'), TrackID(vm_layer, vm_locs[1], w_clk_vm),
                                               min_len_mode=MinLenMode.MIDDLE)
-        tinv0_clk = self.connect_to_tracks(tinv0_clk_vm, TrackID(xm_layer, xm_locs0[1], w_clk_xm),
-                                           min_len_mode=MinLenMode.MIDDLE)
+        tinv0_clk = self.connect_to_track_wires(tinv0_clk_vm, ser0.get_pin('clk_buf', layer=xm_layer))
+        self.add_pin('clk_buf<0>', tinv0_clk, hide=not export_nets)
         tinv0_clkb_vm = self.connect_to_tracks(tinv0.get_pin('en'), TrackID(vm_layer, vm_locs[2], w_clk_vm),
                                                min_len_mode=MinLenMode.MIDDLE)
-        tinv0_clkb = self.connect_to_tracks(tinv0_clkb_vm, TrackID(xm_layer, xm_locs0[-2], w_clk_xm),
-                                            min_len_mode=MinLenMode.MIDDLE)
+        tinv0_clkb = self.connect_to_track_wires(tinv0_clkb_vm, ser0.get_pin('clkb_buf', layer=xm_layer))
+        self.add_pin('clkb_buf<0>', tinv0_clkb, hide=not export_nets)
 
         tinv1_clk_vm = self.connect_to_tracks(tinv1.get_pin('en'), TrackID(vm_layer, vm_locs[1], w_clk_vm),
                                               min_len_mode=MinLenMode.MIDDLE)
-        tinv1_clk = self.connect_to_tracks(tinv1_clk_vm, TrackID(xm_layer, xm_locs3[1], w_clk_xm),
-                                           min_len_mode=MinLenMode.MIDDLE)
+        tinv1_clk = self.connect_to_track_wires(tinv1_clk_vm, ser1.get_pin('clkb_buf', layer=xm_layer))
+        self.add_pin('clk_buf<1>', tinv1_clk, hide=not export_nets)
         tinv1_clkb_vm = self.connect_to_tracks(tinv1.get_pin('enb'), TrackID(vm_layer, vm_locs[2], w_clk_vm),
                                                min_len_mode=MinLenMode.MIDDLE)
-        tinv1_clkb = self.connect_to_tracks(tinv1_clkb_vm, TrackID(xm_layer, xm_locs3[-2], w_clk_xm),
-                                            min_len_mode=MinLenMode.MIDDLE)
+        tinv1_clkb = self.connect_to_track_wires(tinv1_clkb_vm, ser1.get_pin('clk_buf', layer=xm_layer))
+        self.add_pin('clkb_buf<1>', tinv1_clkb, hide=not export_nets)
 
-        clk_list = [ser0.get_pin('clk'), rst0_clk, rst1_clk, tinv0_clk, tinv1_clk]
-        clkb_list = [ser1.get_pin('clk'), rst0_clkb, rst1_clkb, tinv0_clkb, tinv1_clkb]
+        clk_list = [ser0.get_pin('clk'), rst0_clk, rst1_clk]
+        clkb_list = [ser1.get_pin('clk'), rst0_clkb, rst1_clkb]
 
         # get ym_layer tracks
         _, ym_locs = self.tr_manager.place_wires(ym_layer, ['clk', 'clk', 'sig'], rst_ym.track_id.base_index, -1)

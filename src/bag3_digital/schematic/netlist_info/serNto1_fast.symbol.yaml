@@ -46,6 +46,19 @@ terminals:
           - 124
     stype: 0
     ttype: 0
+  clk_buf:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 296
+          - 136
+          - 304
+          - 144
+    stype: 0
+    ttype: 1
   clk_div:
     obj:
       - 0
@@ -70,6 +83,19 @@ terminals:
           - 96
           - 304
           - 104
+    stype: 0
+    ttype: 1
+  clkb_buf:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 296
+          - 116
+          - 304
+          - 124
     stype: 0
     ttype: 1
   din:
@@ -120,10 +146,10 @@ shapes:
       points:
         -
           - 300
-          - 100
+          - 120
         -
           - 260
-          - 100
+          - 120
   -
     - 7
     - layer: 229
@@ -131,7 +157,7 @@ shapes:
       net: ""
       origin:
         - 294
-        - 110
+        - 130
       alignment: 7
       orient: R0
       font: 5
@@ -139,7 +165,35 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clk_div_buf
+      text: clkb_buf
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 300
+          - 140
+        -
+          - 260
+          - 140
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 294
+        - 150
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_buf
   -
     - 0
     - layer: 236
@@ -210,11 +264,35 @@ shapes:
       net: ""
       points:
         -
+          - 300
+          - 100
+        -
+          - 260
+          - 100
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
           - 0
           - 120
         -
           - 40
           - 120
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 160
+        -
+          - 40
+          - 160
   -
     - 5
     - layer: 231
@@ -226,18 +304,6 @@ shapes:
           - 160
         -
           - 260
-          - 160
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 0
-          - 160
-        -
-          - 40
           - 160
   -
     - 0
@@ -285,7 +351,7 @@ shapes:
       net: ""
       origin:
         - 6
-        - 130
+        - 90
       alignment: 1
       orient: R0
       font: 5
@@ -293,23 +359,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clk
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 6
-        - 110
-      alignment: 1
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: clk_div
+      text: rst
   -
     - 7
     - layer: 229
@@ -333,7 +383,7 @@ shapes:
       net: ""
       origin:
         - 6
-        - 90
+        - 110
       alignment: 1
       orient: R0
       font: 5
@@ -341,23 +391,23 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: rst
+      text: clk_div
   -
     - 7
     - layer: 229
       purpose: 237
       net: ""
       origin:
-        - 130
         - 6
-      alignment: 7
-      orient: R270
+        - 130
+      alignment: 1
+      orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: VSS
+      text: clk
   -
     - 7
     - layer: 229
@@ -380,6 +430,22 @@ shapes:
       purpose: 237
       net: ""
       origin:
+        - 130
+        - 6
+      alignment: 7
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
         - 294
         - 170
       alignment: 7
@@ -390,32 +456,48 @@ shapes:
       visible: true
       drafting: true
       text: dout
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 294
+        - 110
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_div_buf
 instances:
   {}
 props:
   interfaceLastChanged:
     - 4
-    - time_val: 1628644953
+    - time_val: 1645829424
   partName:
     - 3
     - serNto1_fast
   pin#:
     - 0
-    - 15
+    - 18
   portOrder:
     - 5
     - name: ILList
-      bin_val: ("clk_div_buf" "dout" "VDD" "VSS" "clk" "clk_div" "din" "rst")
+      bin_val: ("clk_buf" "clk_div_buf" "clkb_buf" "dout" "VDD" "VSS" "clk" "clk_div" "din" "rst")
   vendorName:
     - 3
     - ""
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 307
+    - 365
   _dbvCvTimeStamp:
     - 0
-    - 307
+    - 365
   cdbRevision:
     - 0
     - 227612

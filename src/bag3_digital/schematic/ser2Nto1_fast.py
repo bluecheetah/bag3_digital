@@ -125,4 +125,6 @@ class bag3_digital__ser2Nto1_fast(Module):
 
         if export_nets:
             self.add_pin('ser_out<1:0>', TermType.output)
+            self.add_pin('clk_buf<1:0>', TermType.output)
+            self.add_pin('clkb_buf<1:0>', TermType.output)
             self.add_pin('rstb_sync', TermType.output)

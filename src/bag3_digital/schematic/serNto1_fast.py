@@ -73,7 +73,7 @@ class bag3_digital__serNto1_fast(Module):
             inv_en='Parameters for enable inverters',
             ff='Parameters for flops',
             tinv='Parameters for tinvs',
-            inv_clk='Parameters for clock inverter chain',
+            inv_clk='Parameters for clock and clock_bar inverters',
             inv_clk_div='Parameters for divided clock inverter chain',
             ratio='Number of serialized inputs/deserialized outputs',
             export_nets='True to export intermediate nets; False by default',
@@ -120,6 +120,7 @@ class bag3_digital__serNto1_fast(Module):
         # clock buffers
         self.instances['XINVD'].design(**inv_clk_div)
         self.instances['XINVC'].design(**inv_clk)
+        self.instances['XINVBC'].design(**inv_clk)
 
         # ff_set
         self.instances['XSET'].design(**ff_set)

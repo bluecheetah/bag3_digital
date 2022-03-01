@@ -218,8 +218,8 @@ class Ser2Nto1Fast(MOSBase):
         tinv1_clkb = self.connect_to_track_wires(tinv1_clkb_vm, ser1.get_pin('clk_buf', layer=xm_layer))
         self.add_pin('clkb_buf<1>', tinv1_clkb, hide=not export_nets)
 
-        clk_list = [ser0.get_pin('clk'), rst0_clk, rst1_clk]
-        clkb_list = [ser1.get_pin('clk'), rst0_clkb, rst1_clkb]
+        clk_list = [ser0.get_pin('clk'), ser1.get_pin('clkb'), rst0_clk, rst1_clk]
+        clkb_list = [ser1.get_pin('clk'), ser0.get_pin('clkb'), rst0_clkb, rst1_clkb]
 
         # get ym_layer tracks
         _, ym_locs = self.tr_manager.place_wires(ym_layer, ['clk', 'clk', 'sig'], rst_ym.track_id.base_index, -1)

@@ -447,7 +447,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clk
+      net: clkb
       points:
         -
           - -760
@@ -459,7 +459,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: clk
+      net: clkb
       origin:
         - -724
         - -233
@@ -470,7 +470,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clk
+      text: clkb
   -
     - 5
     - layer: 228
@@ -643,7 +643,7 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: clkb
+      net: clk
       points:
         -
           - -760
@@ -655,7 +655,7 @@ shapes:
     - 7
     - layer: 228
       purpose: 237
-      net: clkb
+      net: clk
       origin:
         - -724
         - 107
@@ -666,7 +666,7 @@ shapes:
       overbar: false
       visible: true
       drafting: true
-      text: clkb
+      text: clk
   -
     - 5
     - layer: 228
@@ -1523,6 +1523,62 @@ shapes:
         -
           - -350
           - 120
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clk
+      points:
+        -
+          - -760
+          - -220
+        -
+          - -720
+          - -220
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clk
+      origin:
+        - -724
+        - -213
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb
+      points:
+        -
+          - -760
+          - 120
+        -
+          - -720
+          - 120
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clkb
+      origin:
+        - -724
+        - 127
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clkb
 instances:
   XCS:
     lib_name: xbase
@@ -1626,6 +1682,7 @@ instances:
       clk_buf: clk_buf<0>
       clk_div: clk_div
       clk_div_buf: nc
+      clkb: clkb
       clkb_buf: clkb_buf<0>
       din: din
       dout: ser_out<0>
@@ -1653,6 +1710,7 @@ instances:
       clk_buf: clkb_buf<1>
       clk_div: clk_div
       clk_div_buf: clk_div_buf
+      clkb: clk
       clkb_buf: clk_buf<1>
       din: din
       dout: ser_out<1>
@@ -1709,22 +1767,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 6929
+    - 7686
   instance#:
     - 0
     - 2
   lastSchematicExtraction:
     - 4
-    - time_val: 1645829826
+    - time_val: 1646099522
   net#:
     - 0
-    - 13
+    - 4
   pin#:
     - 0
     - 10
   schGeometryLastUpdated:
     - 0
-    - 6929
+    - 7686
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1734,10 +1792,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 6929
+    - 7686
   _dbvCvTimeStamp:
     - 0
-    - 6929
+    - 7686
   cdbRevision:
     - 0
     - 227612

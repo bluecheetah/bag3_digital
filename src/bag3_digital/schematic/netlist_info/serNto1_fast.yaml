@@ -241,6 +241,45 @@ terminals:
           format: 1
     stype: 0
     ttype: 1
+  clkb:
+    obj:
+      - 1
+      - inst:
+          lib_name: basic
+          cell_name: ipin
+          view_name: symbol
+          xform:
+            - -910
+            - 670
+            - R0
+          bbox:
+            - -967
+            - 644
+            - -910
+            - 680
+          connections:
+            {}
+          params:
+            {}
+          is_primitive: true
+        attr:
+          layer: 229
+          purpose: 237
+          net: ""
+          origin:
+            - -940
+            - 670
+          alignment: 7
+          orient: R0
+          font: 5
+          height: 10
+          overbar: false
+          visible: true
+          drafting: true
+          attr_type: 0
+          format: 1
+    stype: 0
+    ttype: 0
   clkb_buf:
     obj:
       - 1
@@ -1413,19 +1452,19 @@ shapes:
       net: clkb_buf
       points:
         -
-          - -390
-          - -80
+          - -410
+          - -60
         -
-          - -350
-          - -80
+          - -370
+          - -60
   -
     - 7
     - layer: 228
       purpose: 237
       net: clkb_buf
       origin:
-        - -386
-        - -73
+        - -406
+        - -53
       alignment: 2
       orient: R0
       font: 5
@@ -1441,19 +1480,19 @@ shapes:
       net: clk_buf
       points:
         -
-          - -390
-          - -60
+          - -410
+          - 220
         -
-          - -350
-          - -60
+          - -370
+          - 220
   -
     - 7
     - layer: 228
       purpose: 237
       net: clk_buf
       origin:
-        - -386
-        - -53
+        - -406
+        - 227
       alignment: 2
       orient: R0
       font: 5
@@ -2138,6 +2177,90 @@ shapes:
       visible: true
       drafting: true
       text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: clkb
+      points:
+        -
+          - -650
+          - 220
+        -
+          - -610
+          - 220
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: clkb
+      origin:
+        - -614
+        - 227
+      alignment: 8
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clkb
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - -510
+          - 300
+        -
+          - -510
+          - 340
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -517
+        - 304
+      alignment: 2
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - -510
+          - 100
+        -
+          - -510
+          - 140
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - -517
+        - 136
+      alignment: 8
+      orient: R90
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
 instances:
   XCS:
     lib_name: xbase
@@ -2202,9 +2325,30 @@ instances:
     params:
       {}
     is_primitive: false
+  XINVBC:
+    lib_name: bag3_digital
+    cell_name: inv
+    view_name: symbol
+    xform:
+      - -610
+      - 140
+      - R0
+    bbox:
+      - -614
+      - 136
+      - -406
+      - 304
+    connections:
+      VDD: VDD
+      VSS: VSS
+      in: clkb
+      out: clk_buf
+    params:
+      {}
+    is_primitive: false
   XINVC:
     lib_name: bag3_digital
-    cell_name: inv_chain
+    cell_name: inv
     view_name: symbol
     xform:
       - -610
@@ -2213,14 +2357,13 @@ instances:
     bbox:
       - -614
       - -144
-      - -302
+      - -406
       - 24
     connections:
       VDD: VDD
       VSS: VSS
       in: clk
-      out: clk_buf
-      outb: clkb_buf
+      out: clkb_buf
     params:
       {}
     is_primitive: false
@@ -2408,22 +2551,22 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 14738
+    - 16799
   instance#:
     - 0
-    - 4
+    - 5
   lastSchematicExtraction:
     - 4
-    - time_val: 1645829450
+    - time_val: 1646099358
   net#:
     - 0
     - 0
   pin#:
     - 0
-    - 10
+    - 11
   schGeometryLastUpdated:
     - 0
-    - 14738
+    - 16799
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -2433,10 +2576,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 14738
+    - 16799
   _dbvCvTimeStamp:
     - 0
-    - 14738
+    - 16799
   cdbRevision:
     - 0
     - 227612

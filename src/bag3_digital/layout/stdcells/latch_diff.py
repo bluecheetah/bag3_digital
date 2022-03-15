@@ -35,6 +35,9 @@ class LatchDiffCore(MOSBase):
             sig_locs='Signal track location dictionary.',
             fanout_in='input stage fanout.',
             fanout_kp='keeper stage fanout.',
+            vertical_in='True to have inputs on vertical layer; True by default',
+            sep_vert_in='True to use separate vertical tracks for in and inb; False by default',
+            sep_vert_out='True to use separate vertical tracks for out and outb; False by default',
         )
 
     @classmethod
@@ -47,6 +50,9 @@ class LatchDiffCore(MOSBase):
             sig_locs=None,
             fanout_in=4,
             fanout_kp=8,
+            sep_vert_in=False,
+            sep_vert_out=False,
+            vertical_in=True,
         )
 
     def draw_layout(self) -> None:
@@ -61,6 +67,10 @@ class LatchDiffCore(MOSBase):
         # sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
+        vertical_in: bool = self.params['vertical_in']
+        sep_vert_in: bool = self.params['sep_vert_in']
+        sep_vert_in = sep_vert_in and vertical_in
+        sep_vert_out: bool = self.params['sep_vert_out']
 
         # --- make masters --- #
         # get tracks
@@ -90,8 +100,8 @@ class LatchDiffCore(MOSBase):
         tinv0_ncols = tinv0_master.num_cols
 
         # --- Placement --- #
-        cur_col = 0
         blk_sp = self.min_sep_col
+        cur_col = blk_sp if sep_vert_in else 0
         tinv_in = self.add_tile(tinv0_master, 0, cur_col)
         tinv_inb = self.add_tile(tinv0_master, 1, cur_col)
 
@@ -103,8 +113,8 @@ class LatchDiffCore(MOSBase):
         inv_out = self.add_tile(inv_master, 0, cur_col)
         inv_outb = self.add_tile(inv_master, 1, cur_col)
 
-        cur_col += inv_ncols
-        self.set_mos_size()
+        cur_col += (inv_ncols + blk_sp) if sep_vert_out else inv_ncols
+        self.set_mos_size(cur_col)
 
         # --- Routing --- #
         # supplies
@@ -134,28 +144,38 @@ class LatchDiffCore(MOSBase):
         self.add_pin('clk', clk_vm)
 
         # input pins on vm_layer
-        avail_vm_tidx = self.tr_manager.get_next_track(vm_layer, clkb_vm_tidx, 'clk', 'sig', -1)
-        in_tidx = self.grid.coord_to_track(vm_layer, 0, RoundMode.NEAREST)
-        in_tidx = min(in_tidx, avail_vm_tidx)
         w_sig_vm = self.tr_manager.get_width(vm_layer, 'sig')
-        in_tid = TrackID(vm_layer, in_tidx, w_sig_vm)
-        self.reexport(tinv_in.get_port('nin'), hide=True)   # for routing in flop
-        in_vm = self.connect_to_tracks(tinv_in.get_pin('nin'), in_tid, min_len_mode=MinLenMode.MIDDLE)
-        self.add_pin('in', in_vm)
-        self.reexport(tinv_inb.get_port('nin'), net_name='ninb', hide=True)   # for routing in flop
-        inb_vm = self.connect_to_tracks(tinv_inb.get_pin('nin'), in_tid, min_len_mode=MinLenMode.MIDDLE)
-        self.add_pin('inb', inb_vm)
+        if vertical_in:
+            _, vm_locs = self.tr_manager.place_wires(vm_layer, ['sig', 'sig', 'clk'], clkb_vm_tidx, -1)
+            if sep_vert_in:
+                tidx0, tidx1 = vm_locs[0], vm_locs[1]
+            else:
+                tidx0, tidx1 = vm_locs[1], vm_locs[1]
+            in_vm = self.connect_to_tracks(tinv_in.get_pin('nin'), TrackID(vm_layer, tidx0, w_sig_vm),
+                                           min_len_mode=MinLenMode.MIDDLE)
+            self.add_pin('in', in_vm)
+            inb_vm = self.connect_to_tracks(tinv_inb.get_pin('nin'), TrackID(vm_layer, tidx1, w_sig_vm),
+                                            min_len_mode=MinLenMode.MIDDLE)
+            self.add_pin('inb', inb_vm)
+        else:
+            self.reexport(tinv_in.get_port('nin'), net_name='in', hide=False)
+            self.reexport(tinv_inb.get_port('nin'), net_name='inb', hide=False)
 
         # outputs on vm_layer
-        out_vm_tidx = self.grid.coord_to_track(vm_layer, cur_col * self.sd_pitch, RoundMode.NEAREST)
-        out_vm_tid = TrackID(vm_layer, out_vm_tidx, w_sig_vm)
-        out_vm = self.connect_to_tracks([inv_out.get_pin('pout'), inv_out.get_pin('nout')], out_vm_tid)
+        _tidx1 = self.grid.coord_to_track(vm_layer, cur_col * self.sd_pitch, RoundMode.NEAREST)
+        if sep_vert_out:
+            _tidx0 = self.tr_manager.get_next_track(vm_layer, _tidx1, 'sig', 'sig', -1)
+        else:
+            _tidx0 = _tidx1
+        out_vm = self.connect_to_tracks([inv_out.get_pin('pout'), inv_out.get_pin('nout')],
+                                        TrackID(vm_layer, _tidx0, w_sig_vm))
         self.add_pin('out', out_vm)
-        outb_vm = self.connect_to_tracks([inv_outb.get_pin('pout'), inv_outb.get_pin('nout')], out_vm_tid)
+        outb_vm = self.connect_to_tracks([inv_outb.get_pin('pout'), inv_outb.get_pin('nout')],
+                                         TrackID(vm_layer, _tidx1, w_sig_vm))
         self.add_pin('outb', outb_vm)
 
         # get vm_layer tracks for mid and midb
-        vm_locs = self.tr_manager.spread_wires(vm_layer, ['clk', 'sig', 'sig', 'sig'], clk_vm_tidx, out_vm_tidx,
+        vm_locs = self.tr_manager.spread_wires(vm_layer, ['clk', 'sig', 'sig', 'sig'], clk_vm_tidx, _tidx0,
                                                ('sig', 'sig'))
         self.connect_to_tracks([tinv_in.get_pin('pout'), tinv_in.get_pin('nout'), inv_out.get_pin('nin'),
                                 tinv_fb0.get_pin('pout'), tinv_fb0.get_pin('nout'), tinv_fb1.get_pin('nin')],

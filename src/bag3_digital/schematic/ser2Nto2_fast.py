@@ -30,7 +30,7 @@
 
 # -*- coding: utf-8 -*-
 
-from typing import Mapping, Any
+from typing import Mapping, Any, Optional
 
 import pkg_resources
 from pathlib import Path
@@ -67,19 +67,21 @@ class bag3_digital__ser2Nto2_fast(Module):
         """
         return dict(
             ser='Parameters for each serNto1',
-            rst_sync='Parameters for reset_sync',
+            rst_sync='Optional parameters for reset_sync',
             export_nets='True to export intermediate nets; False by default',
+            is_rst_async='True if asynchronous rst input; False if synchronous rstb input. True by default',
         )
 
     @classmethod
     def get_default_param_values(cls) -> Mapping[str, Any]:
-        return dict(export_nets=False)
+        return dict(export_nets=False, is_rst_async=True, rst_sync=None)
 
     def get_master_basename(self) -> str:
         ratio: int = self.params['ser']['ratio']
         return f'ser_{2 * ratio}to2'
 
-    def design(self, ser: Mapping[str, Any], rst_sync: Mapping[str, Any], export_nets: bool) -> None:
+    def design(self, ser: Mapping[str, Any], rst_sync: Optional[Mapping[str, Any]], export_nets: bool,
+               is_rst_async: bool) -> None:
         """To be overridden by subclasses to design this module.
 
         This method should fill in values for all parameters in
@@ -96,8 +98,12 @@ class bag3_digital__ser2Nto2_fast(Module):
         array_instance()
         """
         # reset_sync
-        self.instances['XRST_SYNC'].design(**rst_sync)
-        self.reconnect_instance_terminal('XRST_SYNC', 'clkb', 'clkb')
+        if is_rst_async:
+            self.instances['XRST_SYNC'].design(**rst_sync)
+            self.reconnect_instance_terminal('XRST_SYNC', 'clkb', 'clkb')
+        else:
+            self.remove_instance('XRST_SYNC')
+            self.rename_pin('rst', 'rstb_sync')
 
         # serNto1
         for idx in range(2):
@@ -113,4 +119,5 @@ class bag3_digital__ser2Nto2_fast(Module):
         if export_nets:
             self.add_pin('clk_buf<1:0>', TermType.output)
             self.add_pin('clkb_buf<1:0>', TermType.output)
-            self.add_pin('rstb_sync', TermType.output)
+            if is_rst_async:
+                self.add_pin('rstb_sync', TermType.output)

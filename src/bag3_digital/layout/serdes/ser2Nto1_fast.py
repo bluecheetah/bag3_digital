@@ -33,7 +33,7 @@ class Ser2Nto1Fast(MOSBase):
             seg_dict='Dictionary of segments',
             ratio='Number of serialized inputs for each serNto1',
             export_nets='True to export intermediate nets',
-            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.'
+            tap_sep_flop='Horizontal separation between column taps in number of flops. Default is ratio // 2.',
         )
 
     @classmethod
@@ -55,6 +55,8 @@ class Ser2Nto1Fast(MOSBase):
         ratio: int = self.params['ratio']
         export_nets: bool = self.params['export_nets']
         tap_sep_flop: int = self.params['tap_sep_flop']
+        if tap_sep_flop <= 0:
+            tap_sep_flop = ratio >> 1
 
         # make masters
         ser_params = dict(pinfo=pinfo, seg_dict=seg_dict['ser'], ridx_p=ridx_p, ridx_n=ridx_n, ratio=ratio,

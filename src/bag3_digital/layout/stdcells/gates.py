@@ -709,9 +709,9 @@ class InvTristateCore(MOSBase):
         self.add_pin('enb', self.connect_to_tracks(pports.g1, tid))
         mlm = MinLenMode.MIDDLE if separate_out else MinLenMode.NONE
         tid = TrackID(hm_layer, nout_tidx, width=tr_w_h)
-        nout = self.connect_to_tracks(nports.d, tid)
+        nout = self.connect_to_tracks(nports.d, tid, min_len_mode=mlm)
         tid = TrackID(hm_layer, pout_tidx, width=tr_w_h)
-        pout = self.connect_to_tracks(pports.d, tid)
+        pout = self.connect_to_tracks(pports.d, tid, min_len_mode=mlm)
 
         # connect output
         if vertical_out:

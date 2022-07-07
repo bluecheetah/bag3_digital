@@ -95,6 +95,7 @@ class LatchCore(MOSBase):
             sig_locs='Signal track location dictionary.',
             fanout_in='input stage fanout.',
             fanout_kp='keeper stage fanout.',
+            vertical_sup='True to have supply unconnected on conn_layer.',
         )
 
     @classmethod
@@ -107,6 +108,7 @@ class LatchCore(MOSBase):
             sig_locs=None,
             fanout_in=4,
             fanout_kp=8,
+            vertical_sup=False,
         )
 
     def draw_layout(self) -> None:
@@ -125,6 +127,7 @@ class LatchCore(MOSBase):
         sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
+        vertical_sup: bool = self.params['vertical_sup']
 
         # setup floorplan
         self.draw_base(pinfo)
@@ -150,7 +153,7 @@ class LatchCore(MOSBase):
 
         seg_t1 = max(1, int(round(seg / (2 * fanout_kp))) * 2)
         seg_t0 = max(2 * seg_t1, max(2, int(round(seg / (2 * fanout_in))) * 2))
-        params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
+        params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n, vertical_sup=vertical_sup,
                       sig_locs={'nin': t0_en_tidx, 'pout': pd1_tidx, 'nout': nd1_tidx})
         inv_master = self.new_template(InvCore, params=params)
 
@@ -182,8 +185,8 @@ class LatchCore(MOSBase):
         # connect/export VSS/VDD
         vss_list, vdd_list = [], []
         for inst in (t0, t1, inv):
-            vss_list.append(inst.get_pin('VSS'))
-            vdd_list.append(inst.get_pin('VDD'))
+            vss_list.extend(inst.get_all_port_pins('VSS'))
+            vdd_list.extend(inst.get_all_port_pins('VDD'))
         self.add_pin('VSS', self.connect_wires(vss_list))
         self.add_pin('VDD', self.connect_wires(vdd_list))
 
@@ -287,7 +290,8 @@ class FlopCore(MOSBase):
             rst_type='SET or RESET; RESET by default',
             scanable='True if flop needs to have scanability',
             extra_sp='This parameter is added to the min value of one of the separations '
-                     '(mostly used to make power vertical stripes aligned)'
+                     '(mostly used to make power vertical stripes aligned)',
+            vertical_sup='True to have supply unconnected on conn_layer.'
         )
 
     @classmethod
@@ -308,6 +312,7 @@ class FlopCore(MOSBase):
             rst_type=RstType.RESET,
             scanable=False,
             extra_sp=0,
+            vertical_sup=False
         )
 
     def draw_layout(self):
@@ -331,6 +336,7 @@ class FlopCore(MOSBase):
             rst_type = RstType[rst_type]
         scan: bool = self.params['scanable']
         extra_sp: int = self.params['extra_sp']
+        vertical_sup: bool = self.params['vertical_sup']
 
         # setup floorplan
         self.draw_base(pinfo)
@@ -354,7 +360,7 @@ class FlopCore(MOSBase):
                           sig_locs={'nclk': nclk_idx, 'nclkb': nclkb_idx, 'pclk': pclk_tidx,
                                     'nin': pclk_tidx, 'pclkb': pclkb_tidx,
                                     'pout': sig_locs.get('pout', pclkb_tidx)},
-                          fanout_in=fanout_in, fanout_kp=fanout_kp)
+                          fanout_in=fanout_in, fanout_kp=fanout_kp, vertical_sup=vertical_sup)
         if rst:
             lat_params['rst_type'] = rst_type
 
@@ -388,7 +394,7 @@ class FlopCore(MOSBase):
             mux_params = dict(pinfo=pinfo, seg=seg_mux['seg'], w_p=w_p, w_n=w_n, ridx_p=ridx_p,
                               ridx_n=ridx_n, sel_seg=seg_mux['sel_seg'], fout=fanout_mux,
                               sig_locs={'pselb': pd1_tidx, 'pin1': pg0_tidx, 'penb': pg1_tidx},
-                              vertical_out=False)
+                              vertical_out=False, vertical_sup=vertical_sup)
             mux_master = self.new_template(Mux2to1Core, params=mux_params)
             mux_inst = self.add_tile(mux_master, 0, cur_col)
             mux_ncol = mux_master.num_cols
@@ -400,9 +406,9 @@ class FlopCore(MOSBase):
         m_inv_sp = blk_sp if rst else 0
         inv_master = None
         if seg_ck > 0:
-            params = dict(pinfo=pinfo, seg=seg_ck, w_p=w_p, w_n=w_n, ridx_p=ridx_p,
-                          ridx_n=ridx_n, sig_locs={'nin': nclk_idx, 'pout': pd0_tidx,
-                                                   'nout': nd0_tidx})
+            params = dict(pinfo=pinfo, seg=seg_ck, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
+                          vertical_sup = vertical_sup, sig_locs={'nin': nclk_idx, 'pout': pd0_tidx,
+                                                                 'nout': nd0_tidx})
 
             inv_master = self.new_template(InvCore, params=params)
             ncol = cur_col + m_ncol + s_ncol + blk_sp + inv_master.num_cols + m_inv_sp
@@ -427,8 +433,8 @@ class FlopCore(MOSBase):
         # connect/export VSS/VDD
         vss_list, vdd_list = [], []
         for inst in inst_list:
-            vss_list.append(inst.get_pin('VSS'))
-            vdd_list.append(inst.get_pin('VDD'))
+            vss_list.extend(inst.get_all_port_pins('VSS'))
+            vdd_list.extend(inst.get_all_port_pins('VDD'))
         self.add_pin('VSS', self.connect_wires(vss_list))
         self.add_pin('VDD', self.connect_wires(vdd_list))
 

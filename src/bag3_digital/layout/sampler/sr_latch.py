@@ -66,7 +66,7 @@ class SRLatchSymmetricHalf(MOSBase):
             has_outbuf='True to add output buffers.',
             has_inbuf='True to add input buffers.',
             out_pitch='output wire pitch from center.',
-            vertical_sup='True to have supply unconnected on conn_layer',
+            vertical_sup='True to have supply unconnected on conn_layer; False by default',
         )
 
     @classmethod

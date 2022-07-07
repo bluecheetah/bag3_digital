@@ -66,6 +66,7 @@ class SRLatchSymmetricHalf(MOSBase):
             has_outbuf='True to add output buffers.',
             has_inbuf='True to add input buffers.',
             out_pitch='output wire pitch from center.',
+            vertical_sup='True to have supply unconnected on conn_layer; False by default',
         )
 
     @classmethod
@@ -78,6 +79,7 @@ class SRLatchSymmetricHalf(MOSBase):
             has_outbuf=True,
             has_inbuf=True,
             out_pitch=0.5,
+            vertical_sup=False,
         )
 
     def draw_layout(self):
@@ -91,6 +93,7 @@ class SRLatchSymmetricHalf(MOSBase):
         has_outbuf: bool = self.params['has_outbuf']
         has_inbuf: bool = self.params['has_inbuf']
         out_pitch: HalfInt = HalfInt.convert(self.params['out_pitch'])
+        vertical_sup: bool = self.params['vertical_sup']
 
         w_dict, th_dict = self._get_w_th_dict(ridx_n, ridx_p, has_rstb)
 
@@ -169,13 +172,11 @@ class SRLatchSymmetricHalf(MOSBase):
         self.set_mos_size()
 
         # track planning
-        vss_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sup')
         nbuf_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sig', wire_idx=-2)
         nq_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sig', wire_idx=-1)
         psr_tid = self.get_track_id(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-1)
         pq_tid = self.get_track_id(ridx_p, MOSWireType.DS, wire_name='sig', wire_idx=0)
         pbuf_tid = self.get_track_id(ridx_p, MOSWireType.DS, wire_name='sig', wire_idx=1)
-        vdd_tid = self.get_track_id(ridx_p, MOSWireType.DS, wire_name='sup')
 
         # try to spread out gate wires to lower parasitics on differential Q wires
         ng_lower = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
@@ -251,8 +252,17 @@ class SRLatchSymmetricHalf(MOSBase):
         self.add_pin('psr', psr)
         self.add_pin('psrb', psrb)
 
-        self.add_pin('VDD', self.connect_to_tracks(vdd_list, vdd_tid))
-        self.add_pin('VSS', self.connect_to_tracks(vss_list, vss_tid))
+        if vertical_sup:
+            vss = vss_list
+            vdd = vdd_list
+        else:
+            vss_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sup')
+            vdd_tid = self.get_track_id(ridx_p, MOSWireType.DS, wire_name='sup')
+            vss = self.connect_to_tracks(vss_list, vss_tid)
+            vdd = self.connect_to_tracks(vdd_list, vdd_tid)
+
+        self.add_pin('VDD', vdd)
+        self.add_pin('VSS', vss)
 
         lch = arr_info.lch
         buf_params = ImmutableSortedDict(dict(
@@ -402,7 +412,7 @@ class SRLatchSymmetric(MOSBase):
             self.reexport(corel.get_port('rstb'), net_name='rsthb')
             self.reexport(corer.get_port('rstb'), net_name='rstlb')
 
-        self.add_pin('VDD', self.connect_wires([corel.get_pin('VDD'), corer.get_pin('VDD')]))
-        self.add_pin('VSS', self.connect_wires([corel.get_pin('VSS'), corer.get_pin('VSS')]))
+        self.add_pin('VDD', self.connect_wires(corel.get_all_port_pins('VDD') + corer.get_all_port_pins('VDD')))
+        self.add_pin('VSS', self.connect_wires(corel.get_all_port_pins('VSS') + corer.get_all_port_pins('VSS')))
 
         self.sch_params = master.sch_params

@@ -309,6 +309,7 @@ class FlopCore(MOSBase):
             extra_sp='This parameter is added to the min value of one of the separations '
                      '(mostly used to make power vertical stripes aligned)',
             vertical_sup='True to have supply unconnected on conn_layer; False by default',
+
         )
 
     @classmethod
@@ -409,7 +410,7 @@ class FlopCore(MOSBase):
             mux_params = dict(pinfo=pinfo, seg=seg_mux['seg'], w_p=w_p, w_n=w_n, ridx_p=ridx_p,
                               ridx_n=ridx_n, sel_seg=seg_mux['sel_seg'], fout=fanout_mux,
                               sig_locs={'pselb': pd1_tidx, 'pin1': pg0_tidx, 'penb': pg1_tidx},
-                              vertical_out=False, vertical_sup=vertical_sup)
+                              vertical_out=False)
             mux_master = self.new_template(Mux2to1Core, params=mux_params)
             mux_inst = self.add_tile(mux_master, 0, cur_col)
             mux_ncol = mux_master.num_cols

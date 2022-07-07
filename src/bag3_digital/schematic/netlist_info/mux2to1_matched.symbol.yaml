@@ -14,9 +14,9 @@ terminals:
         purpose: 4294967295
         net: ""
         bbox:
-          - 116
+          - 106
           - 156
-          - 124
+          - 114
           - 164
     stype: 1
     ttype: 2
@@ -27,9 +27,9 @@ terminals:
         purpose: 4294967295
         net: ""
         bbox:
-          - 116
+          - 106
           - -4
-          - 124
+          - 114
           - 4
     stype: 2
     ttype: 2
@@ -86,6 +86,22 @@ terminals:
     stype: 0
     ttype: 0
 shapes:
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 110
+        - 154
+      alignment: 1
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
   -
     - 7
     - layer: 229
@@ -164,26 +180,10 @@ shapes:
       purpose: 237
       net: ""
       origin:
-        - 134
-        - 150
+        - 110
+        - 6
       alignment: 1
-      orient: R180
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VDD
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 106
-        - 10
-      alignment: 7
-      orient: R180
+      orient: R90
       font: 5
       height: 10
       overbar: false
@@ -317,6 +317,18 @@ shapes:
         -
           - 100
           - 20
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 80
+        -
+          - 40
+          - 80
 instances:
   {}
 props:
@@ -325,23 +337,27 @@ props:
     - X
   interfaceLastChanged:
     - 4
-    - time_val: 1623388744
+    - time_val: 1627853673
   partName:
     - 3
     - mux2to1_matched
   pin#:
     - 0
-    - 6
+    - 12
+  portOrder:
+    - 5
+    - name: ILList
+      bin_val: ("out" "VDD" "VSS" "in<1:0>" "sel" "selb")
   vendorName:
     - 3
     - ""
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 63
+    - 300
   _dbvCvTimeStamp:
     - 0
-    - 63
+    - 300
   cdbRevision:
     - 0
     - 227612

@@ -238,7 +238,7 @@ class SRLatchSymmetricHalf(MOSBase):
             buf_in = self.connect_wires([m_ninv.g, m_pinv.g])
             self.add_pin('buf_in', buf_in)
 
-            q_vm_tidx = tr_manager.get_next_track(vm_layer, srb_vm_tidx, 'sig', 'sig')
+            q_vm_tidx = tr_manager.get_next_track(vm_layer, vm_tidx, 'sig', 'sig')
         else:
             vm_delta = tr_manager.get_next_track(vm_layer, srb_vm_tidx, 'sig', 'sig') - vm_ref
             vm_htr = -(-vm_delta.dbl_value // out_p_htr) * out_p_htr

@@ -95,7 +95,9 @@ class LatchCore(MOSBase):
             sig_locs='Signal track location dictionary.',
             fanout_in='input stage fanout.',
             fanout_kp='keeper stage fanout.',
-            vertical_sup='True to have supply unconnected on conn_layer.',
+            vertical_sup='True to have supply unconnected on conn_layer; False by default',
+            vertical_flop='True to adjust vertical layer tracks so that latch can be tiled vertically to create flop; '
+                          'False by default',
         )
 
     @classmethod
@@ -109,6 +111,7 @@ class LatchCore(MOSBase):
             fanout_in=4,
             fanout_kp=8,
             vertical_sup=False,
+            vertical_flop=False,
         )
 
     def draw_layout(self) -> None:
@@ -128,6 +131,7 @@ class LatchCore(MOSBase):
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
         vertical_sup: bool = self.params['vertical_sup']
+        vertical_flop: bool = self.params['vertical_flop']
 
         # setup floorplan
         self.draw_base(pinfo)
@@ -153,19 +157,19 @@ class LatchCore(MOSBase):
 
         seg_t1 = max(1, int(round(seg / (2 * fanout_kp))) * 2)
         seg_t0 = max(2 * seg_t1, max(2, int(round(seg / (2 * fanout_in))) * 2))
-        params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n, vertical_sup=vertical_sup,
-                      sig_locs={'nin': t0_en_tidx, 'pout': pd1_tidx, 'nout': nd1_tidx})
-        inv_master = self.new_template(InvCore, params=params)
+        params = dict(pinfo=pinfo, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n, vertical_sup=vertical_sup)
+        inv_params = dict(**params, seg=seg, sig_locs={'nin': t0_en_tidx, 'pout': pd1_tidx, 'nout': nd1_tidx})
+        inv_master = self.new_template(InvCore, params=inv_params)
 
-        params['seg'] = seg_t0
-        params['vertical_out'] = False
-        params['sig_locs'] = {'nin': t0_in_tidx, 'pout': pd0_tidx, 'nout': nd0_tidx,
-                              'nen': t0_en_tidx, 'pen': t0_enb_tidx}
-        t0_master = self.new_template(InvTristateCore, params=params)
-        params['seg'] = seg_t1
-        params['sig_locs'] = {'nin': t0_enb_tidx, 'pout': pd0_tidx, 'nout': nd0_tidx,
-                              'nen': t1_en_tidx, 'pen': t0_in_tidx}
-        t1_master = self.new_template(InvTristateCore, params=params)
+        t0_params = dict(**params, seg=seg_t0, vertical_out=False,
+                         sig_locs={'nin': t0_in_tidx, 'pout': pd0_tidx, 'nout': nd0_tidx,
+                                   'nen': t0_en_tidx, 'pen': t0_enb_tidx})
+        t0_master = self.new_template(InvTristateCore, params=t0_params)
+
+        t1_params = dict(**params, seg=seg_t1, vertical_out=False,
+                         sig_locs={'nin': t0_enb_tidx, 'pout': pd0_tidx, 'nout': nd0_tidx,
+                                   'nen': t1_en_tidx, 'pen': t0_in_tidx})
+        t1_master = self.new_template(InvTristateCore, params=t1_params)
 
         # set size
         blk_sp = self.min_sep_col
@@ -204,8 +208,11 @@ class LatchCore(MOSBase):
         self.add_pin('pout', in2, hide=True)
 
         # connect middle node
-        col = inv_col - max(1, blk_sp // 2)
-        mid_tid = TrackID(vm_layer, pinfo.get_source_track(col), width=tr_w_v)
+        if vertical_flop:
+            mid_tid = tr_manager.get_next_track_obj(out, 'sig', 'sig', -1)
+        else:
+            col = inv_col - max(1, blk_sp // 2)
+            mid_tid = TrackID(vm_layer, pinfo.get_source_track(col), width=tr_w_v)
         warrs = [t0.get_pin('pout'), t0.get_pin('nout'), t1.get_pin('pout'), t1.get_pin('nout'),
                  inv.get_pin('nin')]
         hm_warrs = []
@@ -215,8 +222,18 @@ class LatchCore(MOSBase):
         self.add_pin('poutb', inv.get_pin('nin'), hide=True)
 
         # connect clocks
-        clk_tidx = sig_locs.get('clk', pinfo.get_source_track(t1_col + 1))
-        clkb_tidx = sig_locs.get('clkb', pinfo.get_source_track(t1_col - blk_sp - 1))
+        if vertical_flop:
+            r_tidx = tr_manager.get_next_track(vm_layer, mid_tid.base_index, 'sig', 'sig', -2)
+            r_off = self.bound_box.xh - self.grid.track_to_coord(vm_layer, r_tidx)
+            l_off = t0_ncol * self.sd_pitch
+            if r_off > l_off:
+                raise ValueError('Not possible to route on vertical tracks.')
+            _off = (l_off + r_off) // 2
+            clk_tidx = self.grid.coord_to_track(vm_layer, self.bound_box.xh - _off, RoundMode.NEAREST)
+            clkb_tidx = self.grid.coord_to_track(vm_layer, _off, RoundMode.NEAREST)
+        else:
+            clk_tidx = sig_locs.get('clk', pinfo.get_source_track(t1_col + 1))
+            clkb_tidx = sig_locs.get('clkb', pinfo.get_source_track(t1_col - blk_sp - 1))
         clk_tid = TrackID(vm_layer, clk_tidx, width=tr_w_v)
         clkb_tid = TrackID(vm_layer, clkb_tidx, width=tr_w_v)
         t0_en = t0.get_pin('en')
@@ -291,7 +308,7 @@ class FlopCore(MOSBase):
             scanable='True if flop needs to have scanability',
             extra_sp='This parameter is added to the min value of one of the separations '
                      '(mostly used to make power vertical stripes aligned)',
-            vertical_sup='True to have supply unconnected on conn_layer.'
+            vertical_sup='True to have supply unconnected on conn_layer; False by default',
         )
 
     @classmethod
@@ -312,7 +329,7 @@ class FlopCore(MOSBase):
             rst_type=RstType.RESET,
             scanable=False,
             extra_sp=0,
-            vertical_sup=False
+            vertical_sup=False,
         )
 
     def draw_layout(self):
@@ -356,26 +373,24 @@ class FlopCore(MOSBase):
         clkb_idx = sig_locs.get('clkb', None)
 
         # make masters
-        lat_params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
-                          sig_locs={'nclk': nclk_idx, 'nclkb': nclkb_idx, 'pclk': pclk_tidx,
-                                    'nin': pclk_tidx, 'pclkb': pclkb_tidx,
-                                    'pout': sig_locs.get('pout', pclkb_tidx)},
-                          fanout_in=fanout_in, fanout_kp=fanout_kp, vertical_sup=vertical_sup)
+        lat_params = dict(pinfo=pinfo, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n, fanout_in=fanout_in,
+                          fanout_kp=fanout_kp, vertical_sup=vertical_sup)
         if rst:
             lat_params['rst_type'] = rst_type
 
-        s_master = self.new_template(RstLatchCore if rst else LatchCore, params=lat_params)
-        seg_m = max(2, int(round(s_master.seg_in / (2 * fanout_lat))) * 2)
-        lat_params['seg'] = seg_m
-        lat_params['sig_locs'] = lat_sig_locs = {'nclk': nclkb_idx, 'nclkb': nclk_idx,
-                                                 'pclk': pclkb_tidx, 'nin': in_tidx,
-                                                 'pclkb': pclk_tidx}
-        if clk_idx is not None:
-            lat_sig_locs['clkb'] = clk_idx
-        if clkb_idx is not None:
-            lat_sig_locs['clk'] = clkb_idx
+        s_params = dict(**lat_params, seg=seg, sig_locs={'nclk': nclk_idx, 'nclkb': nclkb_idx, 'pclk': pclk_tidx,
+                                                         'nin': pclk_tidx, 'pclkb': pclkb_tidx,
+                                                         'pout': sig_locs.get('pout', pclkb_tidx)})
+        s_master = self.new_template(RstLatchCore if rst else LatchCore, params=s_params)
 
-        m_master = self.new_template(RstLatchCore if rst else LatchCore, params=lat_params)
+        seg_m = max(2, int(round(s_master.seg_in / (2 * fanout_lat))) * 2)
+        m_sig_locs = {'nclk': nclkb_idx, 'nclkb': nclk_idx, 'pclk': pclkb_tidx, 'nin': in_tidx, 'pclkb': pclk_tidx}
+        if clk_idx is not None:
+            m_sig_locs['clkb'] = clk_idx
+        if clkb_idx is not None:
+            m_sig_locs['clk'] = clkb_idx
+        m_params = dict(**lat_params, seg=seg_m, sig_locs=m_sig_locs)
+        m_master = self.new_template(RstLatchCore if rst else LatchCore, params=m_params)
 
         cur_col = 0
         blk_sp = self.min_sep_col
@@ -406,9 +421,9 @@ class FlopCore(MOSBase):
         m_inv_sp = blk_sp if rst else 0
         inv_master = None
         if seg_ck > 0:
-            params = dict(pinfo=pinfo, seg=seg_ck, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
-                          vertical_sup = vertical_sup, sig_locs={'nin': nclk_idx, 'pout': pd0_tidx,
-                                                                 'nout': nd0_tidx})
+            params = dict(pinfo=pinfo, seg=seg_ck, w_p=w_p, w_n=w_n, ridx_p=ridx_p,
+                          ridx_n=ridx_n, sig_locs={'nin': nclk_idx, 'pout': pd0_tidx,
+                                                   'nout': nd0_tidx}, vertical_sup=vertical_sup)
 
             inv_master = self.new_template(InvCore, params=params)
             ncol = cur_col + m_ncol + s_ncol + blk_sp + inv_master.num_cols + m_inv_sp
@@ -1015,7 +1030,7 @@ class RstLatchCore2Row(MOSBase):
         self.reexport(nor.get_port('nin<1>'), net_name='outb', hide=not dual_output)
 
         # set properties
-        self.sch_params = dict(
+        sch_params = dict(
             tin=t0_in_master.sch_params,
             tfb=t1_master.sch_params,
             nor=nor_master.sch_params,
@@ -1023,10 +1038,11 @@ class RstLatchCore2Row(MOSBase):
             dual_output=dual_output,
         )
         if scan:
-            self.sch_params.update(dict(
+            sch_params.update(dict(
                 pg=tg_in_master.sch_params,
                 inv=inv_master.sch_params,
             ))
+        self.sch_params = sch_params
 
 
 class FlopCore2Row(MOSBase):
@@ -1114,41 +1130,37 @@ class FlopCore2Row(MOSBase):
         # compute track locations
         if sig_locs is None:
             sig_locs = {}
-        key = 'in' if 'in' in sig_locs else ('nin' if 'nin' in sig_locs else 'pin')
-        in_idx = sig_locs.get(key, self.get_track_index(ridx_p, MOSWireType.G,
-                                                        wire_name='sig', wire_idx=0))
+        # key = 'in' if 'in' in sig_locs else ('nin' if 'nin' in sig_locs else 'pin')
+        # in_idx = sig_locs.get(key, self.get_track_index(ridx_p, MOSWireType.G,
+        #                                                 wire_name='sig', wire_idx=0))
         pclkb_idx = sig_locs.get('pclkb', self.get_track_index(ridx_p, MOSWireType.G,
                                                                wire_name='sig', wire_idx=0))
-        nclk_idx = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=1)
-        nclkb_idx = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
+        # nclk_idx = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=1)
+        # nclkb_idx = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
         pclk_idx = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=1)
-        clk_idx = sig_locs.get('clk', None)
-        clkb_idx = sig_locs.get('clkb', None)
+        # clk_idx = sig_locs.get('clk', None)
+        # clkb_idx = sig_locs.get('clkb', None)
 
         # make masters
         s_sig_locs = {
             'pclkb_in': pclkb_idx,
         }
-        lat_params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
-                          sig_locs=s_sig_locs,
-                          fanout_in=fanout_in, fanout_kp=fanout_kp, scan=False)
+        lat_params = dict(pinfo=pinfo, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
+                          fanout_in=fanout_in, fanout_kp=fanout_kp)
+        s_params = dict(**lat_params, seg=seg, scan=False, sig_locs=s_sig_locs)
+        s_master = self.new_template(RstLatchCore2Row, params=s_params)
 
-        s_master = self.new_template(RstLatchCore2Row, params=lat_params)
         seg_m = max(2, int(round(s_master.seg_in / (2 * fanout_lat))) * 2)
-        lat_params['seg'] = seg_m
-        lat_params['scan'] = scan
-        lat_params['dual_output'] = False
-        lat_params['sig_locs'] = {}
-
-        m_master = self.new_template(RstLatchCore2Row, params=lat_params)
+        m_params = dict(**lat_params, seg=seg_m, scan=scan, dual_output=False)
+        m_master = self.new_template(RstLatchCore2Row, params=m_params)
 
         cur_col = 0
         blk_sp = self.min_sep_col
         pd0_tidx = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
-        pd1_tidx = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
+        # pd1_tidx = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
         nd0_tidx = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
-        pg0_tidx = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=0)
-        pg1_tidx = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=1)
+        # pg0_tidx = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=0)
+        # pg1_tidx = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=1)
 
         inst_list = []
         m_ncol = m_master.num_cols
@@ -1208,8 +1220,7 @@ class FlopCore2Row(MOSBase):
 
         # connect clk to clkb of m_inst and input of inverter
         clk_hm = m_inst.get_pin('clkb')
-        clk = self.connect_to_track_wires([clk_hm, b_inst.get_pin('in')],
-                                          s_inst.get_pin('clk_vm'))
+        self.connect_to_track_wires([clk_hm, b_inst.get_pin('in')], s_inst.get_pin('clk_vm'))
         self.add_pin('clk', clk_hm)
 
         # connect clkb to clk of m_inst and output of inverter
@@ -1285,18 +1296,18 @@ class ScanRstLatchCore(MOSBase):
 
         # compute track locations and create masters
         tr_manager = pinfo.tr_manager
-        tr_w_v = tr_manager.get_width(vm_layer, 'sig')
+        # tr_w_v = tr_manager.get_width(vm_layer, 'sig')
         if sig_locs is None:
             sig_locs = {}
 
         ng0 = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
-        ng1 = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=1)
+        # ng1 = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=1)
         pg0 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-3)
         pg1 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-2)
         pg2 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-1)
         nd0 = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
         nd1 = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
-        pd0 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
+        # pd0 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
         pd1 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
         pd2 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=2)
         seg_kp = seg_dict['keep']
@@ -1317,7 +1328,7 @@ class ScanRstLatchCore(MOSBase):
                       sig_locs=nor_sig_locs)
         nor_master = self.new_template(NOR2Core, params=params)
 
-        key = 'in' if 'in' in sig_locs else ('nin' if 'nin' in sig_locs else 'pin')
+        # key = 'in' if 'in' in sig_locs else ('nin' if 'nin' in sig_locs else 'pin')
         tin_sig_locs = dict(
             # nin=sig_locs.get(key, pg2),
             # pout=pd0,
@@ -1358,8 +1369,7 @@ class ScanRstLatchCore(MOSBase):
         kp_ncol = kp_master.num_cols
         nor_ncol = nor_master.num_cols
 
-        num_cols = tin_ncol + blk_sp + 2 * seg_pg + blk_sp + tin_ncol + blk_sp + kp_ncol + blk_sp\
-                   + nor_ncol
+        num_cols = tin_ncol + blk_sp + 2 * seg_pg + blk_sp + tin_ncol + blk_sp + kp_ncol + blk_sp + nor_ncol
 
         self.set_mos_size(num_cols, 1)
 
@@ -1506,26 +1516,26 @@ class ScanRstFlopCore(MOSBase):
         w_n: int = self.params['w_n']
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
-        sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
+        # sig_locs: Optional[Mapping[str, float]] = self.params['sig_locs']
         dual_output: bool = self.params['dual_output']
 
         # setup floorplan
         self.draw_base(pinfo)
 
         # compute track locations
-        if sig_locs is None:
-            sig_locs = {}
+        # if sig_locs is None:
+        #     sig_locs = {}
 
         hm_layer = self.conn_layer + 1
         vm_layer = hm_layer + 1
-        ng0 = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
+        # ng0 = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
         ng1 = self.get_track_index(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=1)
-        pg0 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-3)
+        # pg0 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-3)
         pg1 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-2)
         pg2 = self.get_track_index(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=-1)
-        nd0 = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
+        # nd0 = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
         nd1 = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
-        pd0 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
+        # pd0 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
         pd1 = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
 
         # make masters
@@ -1535,15 +1545,13 @@ class ScanRstFlopCore(MOSBase):
             'in': pg2,
         }
         lat_params = dict(pinfo=pinfo, seg_dict=seg_dict, w_p=w_p, w_n=w_n, ridx_p=ridx_p,
-                          ridx_n=ridx_n, sig_locs=s_sig_locs, vertical_clk=False)
+                          ridx_n=ridx_n, vertical_clk=False)
 
-        s_master = self.new_template(RstLatchCore, params=lat_params)
+        s_params = dict(**lat_params, sig_locs=s_sig_locs)
+        s_master = self.new_template(RstLatchCore, params=s_params)
 
-        lat_params['seg_dict'] = seg_dict
-        lat_params['dual_output'] = False
-        lat_params['sig_locs'] = {}
-
-        m_master = self.new_template(ScanRstLatchCore, params=lat_params)
+        m_params = dict(**lat_params, dual_output=False)
+        m_master = self.new_template(ScanRstLatchCore, params=m_params)
 
         clk_inv_sig_locs = {
             'pout': pd1,

@@ -58,17 +58,16 @@ class SerNto1Meas(MeasurementManager):
             clk_div_i = 'clk_div'
             harnesses_list = []
 
-        save_outputs = [f'din{_suf}', clk_i, clk_div_i, 'rst', out_pin]
+        save_outputs = [clk_i, clk_div_i, 'rst', 'rstb_sync', out_pin]
         save_outputs.extend(save_outputs_specs)
 
         # create load
         load_list = [dict(pin=out_pin, type='cap', value='c_load')]
 
         # create inputs
-        seq = max_len_seq(7)[0]
-        for idx in range(ser_ratio):
-            _val = 'v_VDD' if seq[idx] == 1 else 0
-            load_list.append(dict(pin=f'din<{idx}>', type='vdc', value=_val))
+        # seq = max_len_seq(7)[0]
+        seq = [0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1]
+        in_list = ['VDD' if seq[idx] == 1 else 'VSS' for idx in range(ser_ratio - 1, -1, -1)]
         print('---------------')
         print('Input sequence:')
         print(seq[:ser_ratio])
@@ -88,6 +87,7 @@ class SerNto1Meas(MeasurementManager):
         pulse_list.append(dict(pin='rst', tper='t_sim', tpw='t_pw', trf='t_rf'))
 
         tb_params = dict(
+            pin_values={f'din{_suf}': ','.join(in_list)},
             pulse_list=pulse_list,
             load_list=load_list,
             harnesses_list=harnesses_list,

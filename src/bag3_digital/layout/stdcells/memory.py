@@ -462,6 +462,7 @@ class FlopCore(MOSBase):
             self.connect_wires([s_inst.get_pin('nclk'), m_inst.get_pin('nclkb')])
             self.reexport(m_inst.get_port('clk'), net_name='clkb')
             self.reexport(m_inst.get_port('nclk'), net_name='nclkb')
+            self.reexport(s_inst.get_port('nclkb'), net_name='nclkb_s')
         else:
             self.connect_wires([s_inst.get_pin('nclk'), m_inst.get_pin('nclkb'),
                                 b_inst.get_pin('nin')])
@@ -506,6 +507,8 @@ class FlopCore(MOSBase):
         self.reexport(s_inst.get_port('pout'))
         self.reexport(m_inst.get_port('clkb'), net_name='clk')
         self.reexport(m_inst.get_port('nclkb'), net_name='nclk')
+        self.reexport(m_inst.get_port('pclkb'), net_name='pclk')
+        self.reexport(s_inst.get_port('pclk'), net_name='pclk_s')
         self.reexport(s_inst.get_port('outb'), net_name='outb')
         self.reexport(s_inst.get_port('noutb'), net_name='noutb')
         self.reexport(s_inst.get_port('poutb'), net_name='poutb')

@@ -404,9 +404,9 @@ class SerNto1Fast(MOSBase):
         xm_locs1 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'clk', 'clk', 'sup'],
                                                 lower=vdd_dict[xm_layer][0].track_id.base_index,
                                                 upper=vss_dict[xm_layer][1].track_id.base_index, sp_type=('clk', 'clk'))
-        xm_locs2 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'sig', 'clk', 'clk', 'sup'],
+        xm_locs2 = self.tr_manager.spread_wires(xm_layer, ['sup', 'clk', 'clk', 'clk', 'clk', 'sup'],
                                                 lower=vss_dict[xm_layer][1].track_id.base_index,
-                                                upper=vdd_dict[xm_layer][1].track_id.base_index, sp_type=('sig', 'sig'))
+                                                upper=vdd_dict[xm_layer][1].track_id.base_index, sp_type=('clk', 'clk'))
         xxm_locs0 = self.tr_manager.spread_wires(xxm_layer, ['sup', 'clk', 'sig', 'sig', 'clk', 'sup'],
                                                  lower=vss_dict[xxm_layer][0].track_id.base_index,
                                                  upper=vdd_dict[xxm_layer][0].track_id.base_index,
@@ -430,7 +430,7 @@ class SerNto1Fast(MOSBase):
         clkb_list1.append(clkb_vm)
         clkb_xm1 = self.connect_to_tracks(clkb_list1, TrackID(xm_layer, xm_locs1[-2], w_clk_xm))
         clkb_dict1 = self.connect_up(clkb_list1, clkb_xm1, xxm_locs1[-2], 'clk', MinLenMode.LOWER)
-        self.add_pin('clkb_buf', [clkb_dict0[xxm_layer], clkb_dict1[xxm_layer], clkb_xm1], mode=PinMode.LOWER)
+        self.add_pin('clkb_buf', [clkb_dict0[xxm_layer], clkb_dict1[xxm_layer], clkb_xm0, clkb_xm1], mode=PinMode.LOWER)
 
         # clkb -> clk_buf in row 0
         clk_vm = self.connect_to_tracks([invf_0.get_pin('pout'), invf_0.get_pin('nout')],
@@ -442,7 +442,7 @@ class SerNto1Fast(MOSBase):
         clk_list1.append(clk_vm)
         clk_xm1 = self.connect_to_tracks(clk_list1, TrackID(xm_layer, xm_locs1[1], w_clk_xm))
         clk_dict1 = self.connect_up(clk_list1, clk_xm1, xxm_locs1[1], 'clk', MinLenMode.UPPER)
-        self.add_pin('clk_buf', [clk_dict0[xxm_layer], clk_dict1[xxm_layer], clk_xm1], mode=PinMode.LOWER)
+        self.add_pin('clk_buf', [clk_dict0[xxm_layer], clk_dict1[xxm_layer], clk_xm0, clk_xm1], mode=PinMode.LOWER)
         # hidden pins on clk ym_layer for top level routing
         for idx in range(ratio):
             self.add_pin(f'left_ym<{ratio - 1 - idx}>', clk_dict0[ym_layer][idx], hide=True)
@@ -533,8 +533,7 @@ class SerNto1Fast(MOSBase):
         self.add_pin('dout', dout)
 
         # inputs on xm_layer
-        w_sig_xm = self.tr_manager.get_width(xm_layer, 'sig')
-        in_xm_tid = TrackID(xm_layer, xm_locs2[2], w_sig_xm)
+        in_xm_tid = TrackID(xm_layer, xm_locs2[2], w_clk_xm)
         for idx, in_vm in enumerate(in_list):
             in_xm = self.connect_to_tracks(in_vm, in_xm_tid, min_len_mode=MinLenMode.MIDDLE)
             self.add_pin(f'din<{ratio - 1 - idx}>', in_xm)

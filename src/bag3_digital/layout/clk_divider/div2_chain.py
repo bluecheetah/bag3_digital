@@ -28,7 +28,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from typing import Any, Dict, Sequence, Optional, Union, Type, Tuple
+from typing import Any, Mapping, Sequence, Optional, Union, Type, Tuple
 
 from pybag.enum import RoundMode, MinLenMode
 
@@ -53,7 +53,7 @@ class Div2Chain(MOSBase):
         return bag3_digital__div2_chain
 
     @classmethod
-    def get_params_info(cls) -> Dict[str, str]:
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             num_stages='Number of stages.',
@@ -74,10 +74,12 @@ class Div2Chain(MOSBase):
             ridx_n='nmos row index.',
             sig_locs='Signal track location dictionary.',
             export_unit_sup='True to export unit supply pins. Defaults to False.',
+            add_taps='True to add substrate columns in this cell; False if taps are added in higher hierarchy. '
+                     'Defaults to True',
         )
 
     @classmethod
-    def get_default_param_values(cls) -> Dict[str, Any]:
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(
             clk_div_buf_params_list=None,
             inv_clk_div_list=False,
@@ -91,6 +93,7 @@ class Div2Chain(MOSBase):
             ridx_p=-1,
             ridx_n=0,
             export_unit_sup=False,
+            add_taps=True,
         )
 
     @property
@@ -172,9 +175,10 @@ class Div2Chain(MOSBase):
         ridx_p: int = self.params['ridx_p']
         ridx_n: int = self.params['ridx_n']
         export_unit_sup: bool = self.params['export_unit_sup']
-        sig_locs: Dict[str, Tuple[HalfInt, int, float]] = self.params['sig_locs']  # TODO: implement
+        sig_locs: Mapping[str, Tuple[HalfInt, int, float]] = self.params['sig_locs']  # TODO: implement
         clk_div_layer: int = self.params['clk_div_layer']
         output_clk_divb: bool = self.params['output_clk_divb']
+        add_taps: bool = self.params['add_taps']
 
         has_clk_buf = clk_buf_params is not None
         has_clk_gate = clk_gate_params is not None
@@ -214,8 +218,9 @@ class Div2Chain(MOSBase):
 
         # left tap
         vdd_conn_list, vss_conn_list = [], []
-        self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
-        cur_col += tap_ncols + sub_sep
+        if add_taps:
+            self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
+            cur_col += tap_ncols + sub_sep
 
         next_div_in = None
         all_insts = []
@@ -255,9 +260,12 @@ class Div2Chain(MOSBase):
             # cur_col += clk_gate_master.num_cols + self.min_sep_col
             cur_col += clk_gate_master.num_cols
 
-            cur_col += sub_sep
-            self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
-            cur_col += tap_ncols + sub_sep
+            if add_taps:
+                cur_col += sub_sep
+                self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
+                cur_col += tap_ncols + sub_sep
+            else:
+                cur_col += blk_sp
 
             for port_name in clk_gate_inst.port_names_iter():
                 if port_name in ('VDD', 'VSS', 'gclk', 'clk', 'clk_vm', 'en'):
@@ -282,11 +290,12 @@ class Div2Chain(MOSBase):
         clk_div_buf_masters = []
         for i, (clk_div_buf_params, inv_clk_next) in enumerate(zip(clk_div_buf_params_list, inv_clk_div_list)):
             if i > 0:
-                cur_col += sub_sep
-                self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
-                cur_col += tap_ncols + sub_sep
-            else:
-                cur_col += blk_sp
+                if add_taps:
+                    cur_col += sub_sep
+                    self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
+                    cur_col += tap_ncols + sub_sep
+                else:
+                    cur_col += blk_sp
             div_inst = self.add_tile(div_master, 0, cur_col)
             # cur_col += div_ncols + self.min_sep_col
             cur_col += div_ncols
@@ -351,9 +360,10 @@ class Div2Chain(MOSBase):
 
             next_div_in = stg_outb_warr if inv_clk_next else stg_out_warr
 
-        cur_col += sub_sep
-        self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
-        cur_col += tap_ncols
+        if add_taps:
+            cur_col += sub_sep
+            self.add_tap(cur_col, vdd_conn_list, vss_conn_list)
+            cur_col += tap_ncols
 
         self.set_mos_size()
 
@@ -365,8 +375,9 @@ class Div2Chain(MOSBase):
                                     lower=self.bound_box.xl, upper=self.bound_box.xh)[0]
         vss_hm = self.connect_wires([inst.get_pin('VSS') for inst in all_insts],
                                     lower=self.bound_box.xl, upper=self.bound_box.xh)[0]
-        self.connect_to_track_wires(vdd_conn_list, vdd_hm)
-        self.connect_to_track_wires(vss_conn_list, vss_hm)
+        if add_taps:
+            self.connect_to_track_wires(vdd_conn_list, vdd_hm)
+            self.connect_to_track_wires(vss_conn_list, vss_hm)
 
         if export_unit_sup:
             for inst in all_insts:

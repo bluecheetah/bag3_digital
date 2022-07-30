@@ -202,5 +202,6 @@ class bag3_digital__div2_chain(Module):
             else:
                 self.add_pin(clk_div_net, TermType.output)
 
-        for net in nets_to_export:
-            self.add_pin(net, TermType.inout)
+        if export_nets:
+            for net in nets_to_export:
+                self.add_pin(net, TermType.inout)

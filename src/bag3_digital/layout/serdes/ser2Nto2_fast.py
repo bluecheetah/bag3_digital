@@ -133,11 +133,11 @@ class Ser2Nto2Fast(MOSBase):
         self.add_pin('dout<1>', ser1.get_pin('dout'), mode=PinMode.UPPER)
 
         # clk and clkb from tristate inverters
-        self.add_pin('clk_buf<0>', ser0.get_pin('clk_buf', layer=xm_layer), hide=not export_nets)
-        self.add_pin('clkb_buf<0>', ser0.get_pin('clkb_buf', layer=xm_layer), hide=not export_nets)
+        self.add_pin('clk_buf<0>', ser0.get_all_port_pins('clk_buf', layer=xm_layer), hide=not export_nets)
+        self.add_pin('clkb_buf<0>', ser0.get_all_port_pins('clkb_buf', layer=xm_layer), hide=not export_nets)
 
-        self.add_pin('clk_buf<1>', ser1.get_pin('clkb_buf', layer=xm_layer), hide=not export_nets)
-        self.add_pin('clkb_buf<1>', ser1.get_pin('clk_buf', layer=xm_layer), hide=not export_nets)
+        self.add_pin('clk_buf<1>', ser1.get_all_port_pins('clkb_buf', layer=xm_layer), hide=not export_nets)
+        self.add_pin('clkb_buf<1>', ser1.get_all_port_pins('clk_buf', layer=xm_layer), hide=not export_nets)
 
         clk_list = [ser0.get_pin('clk'), ser1.get_pin('clkb')]
         clkb_list = [ser1.get_pin('clk'), ser0.get_pin('clkb')]

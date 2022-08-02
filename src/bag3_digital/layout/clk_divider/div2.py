@@ -154,6 +154,7 @@ class Div2(MOSBase):
         self.connect_to_track_wires(dff_inst.get_pin('nin'), inv_inst.get_pin('out'))
 
         self.reexport(dff_inst.get_port('clk'))
+        self.reexport(dff_inst.get_port('pclk'))
         self.reexport(dff_inst.get_port('out'), net_name='clk_div')
         self.reexport(inv_inst.get_port('out'), net_name='clk_divb')
         self.reexport(dff_inst.get_port('nrst'), net_name='rst', hide=False)

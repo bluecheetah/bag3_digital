@@ -99,6 +99,8 @@ class bag3_digital__reset_sync(Module):
 
         if buf:
             self.instances['XBUF'].design(**buf)
+            if len(buf['inv_params']) == 1:
+                self.remove_pin('rstb_sync')
         else:
             self.remove_instance('XBUF')
             self.reconnect_instance_terminal('XFF1', 'out', 'rstb_sync')

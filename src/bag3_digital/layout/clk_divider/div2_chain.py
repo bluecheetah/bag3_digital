@@ -303,6 +303,7 @@ class Div2Chain(MOSBase):
 
             if i == 0 and not has_clk_buf:
                 self.reexport(div_inst.get_port('clk'))
+                self.reexport(div_inst.get_port('pclk'))
             else:
                 self.connect_to_tracks([next_div_in, div_inst.get_pin('clk')], div_clk_in_hm_tid)
 

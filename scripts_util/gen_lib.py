@@ -52,8 +52,12 @@ def parse_options() -> argparse.Namespace:
                         help='Force RC extraction even if layout/schematic are unchanged')
     parser.add_argument('-s', '--force_sim', action='store_true', default=False,
                         help='Force simulation even if simulation netlist is unchanged')
-    parser.add_argument('-c', '--gen_sch', action='store_true', default=False,
-                        help='Generate testbench schematics for debugging.')
+    parser.add_argument('-c', '--gen_cell', action='store_true', default=False,
+                        help='Generate testbench schematics and DUT for debugging.')
+    parser.add_argument('-cd', '--gen_cell_dut', action='store_true', default=False,
+                        help='Generate only DUT for debugging.')
+    parser.add_argument('-ct', '--gen_cell_tb', action='store_true', default=False,
+                        help='Generate only testbench schematics for debugging.')
     parser.add_argument('-e', '--gen_all_env', action='store_true', default=False,
                         help='Generate liberty file for all defined environments.')
     parser.add_argument('-l', '--export_lay', action='store_true', default=False,
@@ -70,7 +74,8 @@ def run_main(prj: BagProject, args: argparse.Namespace) -> None:
     sim_config = read_yaml(root_dir / 'sim_config.yaml')
     generate_liberty(prj, lib_config, sim_config, specs, fake=args.fake, extract=args.extract,
                      force_sim=args.force_sim, force_extract=args.force_extract,
-                     gen_sch=args.gen_sch, gen_all_env=args.gen_all_env, export_lay=args.export_lay)
+                     gen_cell=args.gen_cell, gen_cell_dut=args.gen_cell_dut, gen_cell_tb=args.gen_cell_tb,
+                     gen_all_env=args.gen_all_env, export_lay=args.export_lay)
 
 
 if __name__ == '__main__':

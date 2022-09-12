@@ -439,7 +439,7 @@ class Mux2to1Core(MOSBase):
         # connect outb to out
         if vertical_out:
             out_idx = out_inv.get_pin('out').track_id.base_index
-            mux_out_idx = tr_manager.get_next_track(vm_layer, out_idx, 'out', 'in', up=False)
+            mux_out_idx = tr_manager.get_next_track(vm_layer, out_idx, 'sig', 'sig', up=False)
         else:
             out_hm = out_inv.get_pin('nout')
             mux_out_idx = self.grid.coord_to_track(vm_layer, out_hm.middle,

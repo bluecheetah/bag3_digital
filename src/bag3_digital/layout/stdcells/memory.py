@@ -150,6 +150,8 @@ class LatchCore(MOSBase):
                                                                wire_name='sig', wire_idx=0))
         t1_en_tidx = sig_locs.get('nclkb', self.get_track_index(ridx_n, MOSWireType.G,
                                                                 wire_name='sig', wire_idx=1))
+        t1_enb_tidx = sig_locs.get('pclk', t0_in_tidx)
+        t1_in_tidx = sig_locs.get('pout', t0_enb_tidx)
         nd0_tidx = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
         nd1_tidx = self.get_track_index(ridx_n, MOSWireType.DS_GATE, wire_name='sig', wire_idx=1)
         pd0_tidx = self.get_track_index(ridx_p, MOSWireType.DS_GATE, wire_name='sig', wire_idx=0)
@@ -167,8 +169,8 @@ class LatchCore(MOSBase):
         t0_master = self.new_template(InvTristateCore, params=t0_params)
 
         t1_params = dict(**params, seg=seg_t1, vertical_out=False,
-                         sig_locs={'nin': t0_enb_tidx, 'pout': pd0_tidx, 'nout': nd0_tidx,
-                                   'nen': t1_en_tidx, 'pen': t0_in_tidx})
+                         sig_locs={'nin': t1_in_tidx, 'pout': pd0_tidx, 'nout': nd0_tidx,
+                                   'nen': t1_en_tidx, 'pen': t1_enb_tidx})
         t1_master = self.new_template(InvTristateCore, params=t1_params)
 
         # set size

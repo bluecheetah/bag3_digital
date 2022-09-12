@@ -274,6 +274,8 @@ class Div2Chain(MOSBase):
 
             if next_div_in is not None:
                 self.connect_to_track_wires(clk_gate_inst.get_pin('clk'), next_div_in)
+            else:
+                self.reexport(clk_gate_inst.get_port('clk'))
             next_div_in = clk_gate_inst.get_pin('gclk')
 
             self.reexport(clk_gate_inst.get_port('gclk'), hide=not export_nets)
@@ -297,11 +299,10 @@ class Div2Chain(MOSBase):
                 else:
                     cur_col += blk_sp
             div_inst = self.add_tile(div_master, 0, cur_col)
-            # cur_col += div_ncols + self.min_sep_col
             cur_col += div_ncols
             div_insts.append(div_inst)
 
-            if i == 0 and not has_clk_buf:
+            if next_div_in is None:
                 self.reexport(div_inst.get_port('clk'))
                 self.reexport(div_inst.get_port('pclk'))
             else:
@@ -354,6 +355,7 @@ class Div2Chain(MOSBase):
             # self.add_pin(f'clk_div_{i}', stg_out_warr)
             # self.add_pin(f'clk_divb_{i}', stg_outb_warr)
             self.add_pin(f'clk_div_{i}', clk_div_top_warr)
+            self.add_pin(f'clk_div_vm_{i}', stg_out_warr, hide=True)
             if output_clk_divb:
                 self.add_pin(f'clk_divb_{i}', clk_divb_top_warr)
             else:

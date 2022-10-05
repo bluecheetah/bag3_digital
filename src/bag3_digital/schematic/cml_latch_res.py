@@ -99,11 +99,11 @@ class bag3_digital__cml_latch_res(Module):
                     self.instances[inst_name].design(lch=lch, w=w, seg=nf, intent=intent, stack=1)
                     self.reconnect_instance_terminal(inst_name, 'g', 'vbias')
             elif name == 'clk':
-                self.instances[f'X{uname}'].design(l=lch, w=w, nf=nf, intent=intent)
-                self.instances[f'X{uname}B'].design(l=lch, w=w, nf=nf, intent=intent)
+                self.design_transistor(f'X{uname}', w, lch, nf, intent)
+                self.design_transistor(f'X{uname}B', w, lch, nf, intent)
             else:
-                self.instances[f'X{uname}P'].design(l=lch, w=w, nf=nf, intent=intent)
-                self.instances[f'X{uname}N'].design(l=lch, w=w, nf=nf, intent=intent)
+                self.design_transistor(f'X{uname}P', w, lch, nf, intent)
+                self.design_transistor(f'X{uname}N', w, lch, nf, intent)
 
         # design biases
         for name in ['in', 'clk', 'tail']:
@@ -120,9 +120,9 @@ class bag3_digital__cml_latch_res(Module):
                     self.instances[inst_name].design(lch=lch, w=w, seg=nf, intent=intent, stack=1)
                     self.reconnect_instance_terminal(inst_name, 'g', 'vbias')
             elif name == 'in':
-                self.instances[f'XB_{uname}'].design(l=lch, w=w, nf=nf*2, intent=intent)
+                self.design_transistor(f'XB_{uname}', w, lch, nf*2, intent)
             else:
-                self.instances[f'XB_{uname}'].design(l=lch, w=w, nf=nf, intent=intent)
+                self.design_transistor(f'XB_{uname}', w, lch, nf, intent)
 
         if has_bridge:
             w = w_dict['br']

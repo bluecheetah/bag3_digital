@@ -1,4 +1,4 @@
-from typing import Any, Optional, Mapping, Type
+from typing import Any, Optional, Mapping, Type, Union, Tuple
 from itertools import chain
 
 from pybag.enum import MinLenMode, RoundMode
@@ -81,25 +81,35 @@ class Des1toN(MOSBase):
         ng_tidx = self.get_track_index(ridx_n, MOSWireType.G, 'sig', 1)
         nd1_tidx = self.get_track_index(ridx_n, MOSWireType.DS, 'sig', -1)
         nd0_tidx = self.get_track_index(ridx_n, MOSWireType.DS, 'sig', -2)
-        seg_fast: int = seg_dict['inv_fast']
-        assert seg_fast & 1 == 0, f'seg_dict["inv_fast"]={seg_fast} has to be even.'
-        invf_0_params = dict(pinfo=pinfo, seg=seg_fast, vertical_out=False,
+        seg_fast: Union[int, Tuple[int, int]] = seg_dict['inv_fast']
+        if isinstance(seg_fast, int):
+            assert seg_fast & 1 == 0, f'seg_dict["inv_fast"]={seg_fast} has to be even.'
+            seg_fast0, seg_fast1 = seg_fast, seg_fast
+        else:
+            seg_fast0, seg_fast1 = seg_fast
+            assert seg_fast0 & 1 == 0, f'seg_dict["inv_fast"][0]={seg_fast0} has to be even.'
+            assert seg_fast1 & 1 == 0, f'seg_dict["inv_fast"][1]={seg_fast1} has to be even.'
+        invf_0_params = dict(pinfo=pinfo, seg=seg_fast0, vertical_out=False,
                              sig_locs={'in': ng_tidx, 'pout': pd0_tidx, 'nout': nd1_tidx})
         invf_0_master = self.new_template(InvCore, params=invf_0_params)
-        invf_1_params = dict(pinfo=pinfo, seg=seg_fast, vertical_out=False,
+        invf_1_params = dict(pinfo=pinfo, seg=seg_fast1, vertical_out=False,
                              sig_locs={'in': pg_tidx, 'pout': pd1_tidx, 'nout': nd0_tidx})
         invf_1_master = self.new_template(InvCore, params=invf_1_params)
 
-        seg_slow: int = seg_dict['inv_slow']
-        assert seg_slow & 1 == 0, f'seg_dict["inv_slow"]={seg_slow} has to be even.'
-        invs_0_params = dict(pinfo=pinfo, seg=seg_slow, vertical_out=False,
+        seg_slow: Union[int, Tuple[int, int]] = seg_dict['inv_slow']
+        if isinstance(seg_slow, int):
+            assert seg_slow & 1 == 0, f'seg_dict["inv_slow"]={seg_slow} has to be even.'
+            seg_slow0, seg_slow1 = seg_slow, seg_slow
+        else:
+            seg_slow0, seg_slow1 = seg_slow
+            assert seg_slow0 & 1 == 0, f'seg_dict["inv_slow"][0]={seg_slow0} has to be even.'
+            assert seg_slow1 & 1 == 0, f'seg_dict["inv_slow"][1]={seg_slow1} has to be even.'
+        invs_0_params = dict(pinfo=pinfo, seg=seg_slow0, vertical_out=False,
                              sig_locs={'in': ng_tidx, 'pout': pd0_tidx, 'nout': nd1_tidx})
         invs_0_master = self.new_template(InvCore, params=invs_0_params)
-        invs_1_params = dict(pinfo=pinfo, seg=seg_slow, vertical_out=False,
+        invs_1_params = dict(pinfo=pinfo, seg=seg_slow1, vertical_out=False,
                              sig_locs={'in': pg_tidx, 'pout': pd1_tidx, 'nout': nd0_tidx})
         invs_1_master = self.new_template(InvCore, params=invs_1_params)
-
-        inv_ncols = 2 * max(invf_0_master.num_cols, invs_0_master.num_cols)
 
         hm_layer = self.conn_layer + 1
         vm_layer = hm_layer + 1
@@ -120,13 +130,13 @@ class Des1toN(MOSBase):
         # clock inverters at beginning for deserializer
         invf_0 = self.add_tile(invf_0_master, 0, cur_col)
         invs_0 = self.add_tile(invs_0_master, 1, cur_col)
-        cur_col += inv_ncols // 2
+        cur_col += max(invf_0_master.num_cols, invs_0_master.num_cols)
         _, clk_vm_locs = self.tr_manager.place_wires(vm_layer, ['clk', 'clk', 'clk'],
                                                      center_coord=cur_col * self.sd_pitch)
         invf_1 = self.add_tile(invf_1_master, 0, cur_col)
         invs_1 = self.add_tile(invs_1_master, 1, cur_col)
         inv_list = [invf_0, invf_1, invs_0, invs_1]
-        cur_col += inv_ncols // 2
+        cur_col += max(invf_1_master.num_cols, invs_1_master.num_cols)
         clk_in_idx, clk_out_idx = 0, -1
 
         # flops

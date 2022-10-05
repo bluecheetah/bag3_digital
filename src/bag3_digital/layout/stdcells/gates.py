@@ -709,9 +709,9 @@ class InvTristateCore(MOSBase):
         self.add_pin('enb', self.connect_to_tracks(pports.g1, tid))
         mlm = MinLenMode.MIDDLE if separate_out else MinLenMode.NONE
         tid = TrackID(hm_layer, nout_tidx, width=tr_w_h)
-        nout = self.connect_to_tracks(nports.d, tid)
+        nout = self.connect_to_tracks(nports.d, tid, min_len_mode=mlm)
         tid = TrackID(hm_layer, pout_tidx, width=tr_w_h)
-        pout = self.connect_to_tracks(pports.d, tid)
+        pout = self.connect_to_tracks(pports.d, tid, min_len_mode=mlm)
 
         # connect output
         if vertical_out:
@@ -1662,6 +1662,7 @@ class PassGateCore(MOSBase):
             vertical_out='whether output pin (d) on vm_layer',
             vertical_in='whether input pin (s) on vm_layer, only relevant if is_guarded = True.',
             is_guarded='True if it there should be guard ring around the cell',
+            vertical_sup='True to have supply unconnected on conn_layer.',
         )
 
     @classmethod
@@ -1677,6 +1678,7 @@ class PassGateCore(MOSBase):
             sig_locs={},
             vertical_out=True,
             vertical_in=True,
+            vertical_sup=False,
             is_guarded=False,
         )
 
@@ -1694,6 +1696,7 @@ class PassGateCore(MOSBase):
         sig_locs: Mapping[str, Union[float, HalfInt]] = self.params['sig_locs']
         vertical_out: bool = self.params['vertical_out']
         vertical_in: bool = self.params['vertical_in']
+        vertical_sup: bool = self.params['vertical_sup']
         is_guarded: bool = self.params['is_guarded']
 
         if seg_p <= 0:
@@ -1713,13 +1716,14 @@ class PassGateCore(MOSBase):
         self.set_mos_size()
 
         # VDD/VSS wires
-        xr = self.bound_box.xh
-        ns_tid = self.get_track_id(ridx_n, MOSWireType.DS_GATE, wire_name='sup')
-        ps_tid = self.get_track_id(ridx_p, MOSWireType.DS_GATE, wire_name='sup')
-        vss = self.add_wires(hm_layer, ns_tid.base_index, 0, xr, width=ns_tid.width)
-        vdd = self.add_wires(hm_layer, ps_tid.base_index, 0, xr, width=ps_tid.width)
-        self.add_pin('VDD', vdd)
-        self.add_pin('VSS', vss)
+        if not vertical_sup:
+            xr = self.bound_box.xh
+            ns_tid = self.get_track_id(ridx_n, MOSWireType.DS_GATE, wire_name='sup')
+            ps_tid = self.get_track_id(ridx_p, MOSWireType.DS_GATE, wire_name='sup')
+            vss = self.add_wires(hm_layer, ns_tid.base_index, 0, xr, width=ns_tid.width)
+            vdd = self.add_wires(hm_layer, ps_tid.base_index, 0, xr, width=ps_tid.width)
+            self.add_pin('VDD', vdd)
+            self.add_pin('VSS', vss)
 
         # input will connect on the track id aligned with transistor's source
         tr_manager = self.tr_manager

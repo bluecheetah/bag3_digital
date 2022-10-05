@@ -35,11 +35,14 @@ def generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
                      sim_config: Mapping[str, Any], specs: Mapping[str, Any],
                      fake: bool = False, extract: bool = False,
                      force_sim: bool = False, force_extract: bool = False,
-                     gen_all_env: bool = False, gen_sch: bool = False, export_lay: bool = False,
+                     gen_all_env: bool = False, gen_cell: bool = False, gen_cell_dut: bool = False,
+                     gen_cell_tb: bool = False, export_lay: bool = False,
                      log_level: LogLevel = LogLevel.DEBUG) -> None:
+    gen_cell_dut |= gen_cell
+    gen_cell_tb |= gen_cell
     asyncio.run(async_generate_liberty(prj, lib_config, sim_config, specs, fake=fake,
                                        extract=extract, force_sim=force_sim,
-                                       force_extract=force_extract, gen_sch=gen_sch,
+                                       force_extract=force_extract, gen_cell_dut=gen_cell_dut, gen_cell_tb=gen_cell_tb,
                                        gen_all_env=gen_all_env, export_lay=export_lay,
                                        log_level=log_level))
 
@@ -48,7 +51,7 @@ async def async_generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
                                  sim_config: Mapping[str, Any], cell_specs: Mapping[str, Any],
                                  fake: bool = False, extract: bool = False,
                                  force_sim: bool = False, force_extract: bool = False,
-                                 gen_all_env: bool = False, gen_sch: bool = False,
+                                 gen_all_env: bool = False, gen_cell_dut: bool = False, gen_cell_tb: bool = False,
                                  export_lay: bool = False, log_level: LogLevel = LogLevel.DEBUG
                                  ) -> None:
     """Generate liberty file for the given cells.
@@ -73,8 +76,10 @@ async def async_generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
         True to force extraction runs.
     gen_all_env : bool
         True to generate liberty files for all environments.
-    gen_sch : bool
-        True to generate schematics.
+    gen_cell_dut : bool
+        True to generate DUT schematics.
+    gen_cell_tb : bool
+        True to generate TB schematics.
     export_lay : bool
         Use CAD tool to export layout.
     log_level : LogLevel
@@ -98,7 +103,8 @@ async def async_generate_liberty(prj: BagProject, lib_config: Mapping[str, Any],
     dsn_options = dict(
         extract=extract,
         force_extract=force_extract,
-        gen_sch=gen_sch,
+        gen_sch_dut=gen_cell_dut,
+        gen_sch_tb=gen_cell_tb,
         log_level=log_level,
     )
     log_file = str(lib_root_dir / 'lib_gen.log')

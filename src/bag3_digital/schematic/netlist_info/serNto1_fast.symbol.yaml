@@ -41,11 +41,24 @@ terminals:
         net: ""
         bbox:
           - -4
-          - 116
+          - 136
           - 4
-          - 124
+          - 144
     stype: 0
     ttype: 0
+  clk_buf:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 296
+          - 136
+          - 304
+          - 144
+    stype: 0
+    ttype: 1
   clk_div:
     obj:
       - 0
@@ -70,6 +83,32 @@ terminals:
           - 96
           - 304
           - 104
+    stype: 0
+    ttype: 1
+  clkb:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 116
+          - 4
+          - 124
+    stype: 0
+    ttype: 0
+  clkb_buf:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 296
+          - 116
+          - 304
+          - 124
     stype: 0
     ttype: 1
   din:
@@ -119,27 +158,27 @@ shapes:
       net: ""
       points:
         -
-          - 300
-          - 100
+          - 0
+          - 120
         -
-          - 260
-          - 100
+          - 40
+          - 120
   -
     - 7
     - layer: 229
       purpose: 237
       net: ""
       origin:
-        - 294
-        - 110
-      alignment: 7
+        - 6
+        - 130
+      alignment: 1
       orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: clk_div_buf
+      text: clkb
   -
     - 0
     - layer: 236
@@ -198,6 +237,18 @@ shapes:
       net: ""
       points:
         -
+          - 300
+          - 100
+        -
+          - 260
+          - 100
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
           - 0
           - 100
         -
@@ -211,10 +262,34 @@ shapes:
       points:
         -
           - 0
-          - 120
+          - 140
         -
           - 40
+          - 140
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 300
           - 120
+        -
+          - 260
+          - 120
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 300
+          - 140
+        -
+          - 260
+          - 140
   -
     - 5
     - layer: 231
@@ -285,7 +360,7 @@ shapes:
       net: ""
       origin:
         - 6
-        - 130
+        - 150
       alignment: 1
       orient: R0
       font: 5
@@ -381,6 +456,22 @@ shapes:
       net: ""
       origin:
         - 294
+        - 110
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_div_buf
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 294
         - 170
       alignment: 7
       orient: R0
@@ -390,32 +481,64 @@ shapes:
       visible: true
       drafting: true
       text: dout
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 294
+        - 150
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk_buf
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 294
+        - 130
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clkb_buf
 instances:
   {}
 props:
   interfaceLastChanged:
     - 4
-    - time_val: 1628644953
+    - time_val: 1646099343
   partName:
     - 3
     - serNto1_fast
   pin#:
     - 0
-    - 15
+    - 21
   portOrder:
     - 5
     - name: ILList
-      bin_val: ("clk_div_buf" "dout" "VDD" "VSS" "clk" "clk_div" "din" "rst")
+      bin_val: ("clk_buf" "clk_div_buf" "clkb_buf" "dout" "VDD" "VSS" "clk" "clk_div" "clkb" "din" "rst")
   vendorName:
     - 3
     - ""
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 307
+    - 421
   _dbvCvTimeStamp:
     - 0
-    - 307
+    - 421
   cdbRevision:
     - 0
     - 227612

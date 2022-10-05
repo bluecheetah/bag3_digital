@@ -18,6 +18,8 @@ from typing import Dict, Any, List, Optional
 import os
 import pkg_resources
 
+from pybag.enum import TermType
+
 from bag.design.module import Module
 from bag.design.database import ModuleDB
 from bag.util.immutable import Param
@@ -52,6 +54,8 @@ class bag3_digital__inv(Module):
             stack_n='number of transistors in a stack.',
             p_in_gate_numbers='a List indicating input number of the gate',
             n_in_gate_numbers='a List indicating input number of the gate',
+            has_vtop='True if PMOS drain is not connected to VDD, but instead VTOP',
+            has_vbot='True if NMOS drain is not connected to VSS, but instead VBOT',
         )
 
     @classmethod
@@ -64,10 +68,13 @@ class bag3_digital__inv(Module):
             stack_n=1,
             p_in_gate_numbers=None,
             n_in_gate_numbers=None,
+            has_vtop=False,
+            has_vbot=False,
         )
 
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,
-               th_n: str, stack_p: int, stack_n: int, p_in_gate_numbers: Optional[List[int]] = None,
+               th_n: str, stack_p: int, stack_n: int, has_vtop: bool, has_vbot: bool,
+               p_in_gate_numbers: Optional[List[int]] = None,
                n_in_gate_numbers: Optional[List[int]] = None) -> None:
         if seg_p <= 0:
             seg_p = seg
@@ -81,6 +88,13 @@ class bag3_digital__inv(Module):
 
         self._reconnect_gate('XP', stack_p, p_in_gate_numbers, 'VSS')
         self._reconnect_gate('XN', stack_n, n_in_gate_numbers, 'VDD')
+
+        if has_vbot:
+            self.reconnect_instance_terminal('XN', 's', 'VBOT')
+            self.add_pin('VBOT', TermType.inout)
+        if has_vtop:
+            self.reconnect_instance_terminal('XP', 's', 'VTOP')
+            self.add_pin('VTOP', TermType.inout)
 
     def _reconnect_gate(self, inst_name: str, stack: int, idx_list: Optional[List[int]], sup: str
                         ) -> None:

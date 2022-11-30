@@ -1,18 +1,19 @@
 """This module contains layout generators for complex AND gate with 2 - 9 inputs"""
 
-from typing import Mapping, Any, Optional, Type, Sequence
+from typing import Mapping, Any, Optional, Type, Sequence, List, Tuple
 
 from pybag.enum import MinLenMode, RoundMode
 
 from bag.util.immutable import Param
 from bag.design.module import Module
 from bag.layout.template import TemplateDB
-from bag.layout.routing.base import TrackID
+from bag.layout.routing.base import TrackID, WireArray
 
 from xbase.layout.enum import MOSWireType
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 
 from .gates import NAND2Core, NAND3Core, NOR2Core, NOR3Core, InvCore
+from .logic_unit import LogicUnit
 
 from ...schematic.and_complex import bag3_digital__and_complex
 
@@ -383,76 +384,6 @@ class AndComplexCol(MOSBase):
         )
 
 
-# TODO: port to higher level
-class LogicUnit(MOSBase):
-    """A logic unit to built NAND/NOR gates.
-    Based on BAG2 version
-    """
-
-    def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
-        MOSBase.__init__(self, temp_db, params, **kwargs)
-
-    @classmethod
-    def get_params_info(cls):
-        return dict(
-            pinfo='The MOSBasePlaceInfo object.',
-            seg='number of segments.',
-            w_p='pmos width. Defaults to using the width from pinfo',
-            w_n='nmos width. Defaults to using the width from pinfo',
-            ridx_p='pmos row index.',
-            ridx_n='nmos row index.',
-        )
-
-    @classmethod
-    def get_default_param_values(cls):
-        return dict(w_p=None, w_n=None, ridx_p=-1, ridx_n=0,)
-
-    def get_layout_basename(self):
-        return 'unit_%dx' % self.params['seg']
-
-    def draw_layout(self):
-        pinfo = MOSBasePlaceInfo.make_place_info(self.grid, self.params['pinfo'])
-        self.draw_base(pinfo)
-
-        seg: int = self.params['seg']
-        w_p: int = self.params['w_p']
-        w_n: int = self.params['w_n']
-        ridx_p: int = self.params['ridx_p']
-        ridx_n: int = self.params['ridx_n']
-
-        if not w_p:
-            w_p = self.place_info.get_row_place_info(-1).row_info.width
-        if not w_n: 
-            w_n = self.place_info.get_row_place_info(0).row_info.width
-
-        # get track information
-        hm_layer = self.conn_layer + 1
-
-        # add blocks and collect wires
-        pmos = self.add_mos(ridx_p, 0, seg, g_on_s=seg % 2, w=w_p)
-        nmos = self.add_mos(ridx_n, 0, seg, g_on_s=seg % 2, w=w_n)
-        self.set_mos_size()
-
-        # draw VDD/VSS
-        vss_tid = self.get_track_id(ridx_n, MOSWireType.DS, 'sup', 0)
-        vdd_tid = self.get_track_id(ridx_p, MOSWireType.DS, 'sup', -1)
-        sup_w = vss_tid.width
-        xl, xr = self.bound_box.xl, self.bound_box.xh
-        vss = self.add_wires(hm_layer, vss_tid.base_index, xl, xr, width=sup_w)
-        vdd = self.add_wires(hm_layer, vdd_tid.base_index, xl, xr, width=sup_w)
-        self.add_pin('VSS', vss)
-        self.add_pin('VDD', vdd)
-
-        # export
-        # breakpoint()
-        self.add_pin('pg', pmos.g)
-        self.add_pin('ps', pmos.s)
-        self.add_pin('pd', pmos.d)
-        self.add_pin('ng', nmos.g)
-        self.add_pin('ns', nmos.s)
-        self.add_pin('nd', nmos.d)
-
-
 class AndComplexColTall(MOSBase):
     """A complex AND for B2T decoding. Used for passgate mux column decoder
     Based on AndDiffRow from BAG2
@@ -471,7 +402,7 @@ class AndComplexColTall(MOSBase):
         return bag3_digital__and_complex
 
     @classmethod
-    def get_params_info(cls):
+    def get_params_info(cls) -> Mapping[str, str]:
         return dict(
             pinfo='The MOSBasePlaceInfo object.',
             seg_dict='Dictionary of segments of standard cell components',
@@ -480,14 +411,13 @@ class AndComplexColTall(MOSBase):
         )
 
     @classmethod
-    def get_default_param_values(cls):
+    def get_default_param_values(cls) -> Mapping[str, Any]:
         return dict(export_outb=True)
 
-    def get_layout_basename(self):
-        return 'androw_diff%d_%dx' % (self.params['num_in'], self.params['seg_dict']['nand'])
+    def get_layout_basename(self) -> str:
+        return f"androw_diff{self.params['num_in']}_{self.params['seg_dict']['nand']}x"
 
-    def draw_layout(self):
-
+    def draw_layout(self) -> None:
         pinfo = MOSBasePlaceInfo.make_place_info(self.grid, self.params['pinfo'])
         self.draw_base(pinfo)
 
@@ -566,6 +496,7 @@ class AndComplexColTall(MOSBase):
         tile_idx += num_nand
 
         # make outb inverter
+        inv2_in_warr, inv2_out_warr = None, None
         if export_outb:
             inv_tmp = self._make_inv_row(sig_locs, tile_idx, unit_inst, vm_locs, vss_list, vdd_list)
             inv2_in_warr, inv2_out_warr = inv_tmp
@@ -576,9 +507,8 @@ class AndComplexColTall(MOSBase):
         for idy in range(num_in):
             pname = 'in<%d>' % idy
             vm_tidx = vm_locs[1]
-            _in = self.connect_to_tracks(in_list[idy],
-                                        TrackID(vm_layer, vm_tidx, w_sig_vm),
-                                        min_len_mode=MinLenMode.MIDDLE)
+            _in = self.connect_to_tracks(in_list[idy], TrackID(vm_layer, vm_tidx, w_sig_vm),
+                                         min_len_mode=MinLenMode.MIDDLE)
             self.add_pin(pname, _in)
 
         # connect mid wires
@@ -598,6 +528,7 @@ class AndComplexColTall(MOSBase):
             nor_out_warr.append(inv2_in_warr)
 
         # connect out wire
+        out, outb = nor_out_warr, inv2_out_warr
         if out_vm:
             # Get the highest NOR wire, preallocated
             col_idx = num_nor_int - 1
@@ -616,9 +547,9 @@ class AndComplexColTall(MOSBase):
                 outb = self.connect_to_tracks(inv2_out_warr, tid)
 
         # export output
-        self.add_pin('out', out if out_vm else nor_out_warr)
+        self.add_pin('out', out)
         if export_outb:
-            self.add_pin('outb', outb if out_vm else inv2_out_warr)
+            self.add_pin('outb', outb)
 
         # connect/export VSS/VDD
         self.add_pin('VSS', vss_list, connect=True)
@@ -672,7 +603,7 @@ class AndComplexColTall(MOSBase):
     Given some inputs, connect up the appropriate, save VDD + VSS, and return the inputs + outputs
     """
     def _make_nand_row(self, num_in: int, sig_locs: dict, tile_idx: int, unit_inst: list, 
-                       vm_locs: list, vss_warr: list, vdd_warr: list):
+                       vm_locs: list, vss_warr: list, vdd_warr: list) -> Tuple[List[WireArray], List[WireArray]]:
         # get sig locations
         gate_name = 'nand%d' % num_in
         in_tidx = []
@@ -700,11 +631,11 @@ class AndComplexColTall(MOSBase):
             if in_tidx[idy] is None:
                 in_tidx[idy] = self.get_track_index(nidx, MOSWireType.G, 'sig', wire_idx=-1, tile_idx=idy + tile_idx)
             if pout_tidx[idy] is None:
-                pout_tidx[idy] = self.get_track_index(pidx, MOSWireType.DS, 'sig',  wire_idx=0, tile_idx=idy + tile_idx)
+                pout_tidx[idy] = self.get_track_index(pidx, MOSWireType.DS, 'sig', wire_idx=0, tile_idx=idy + tile_idx)
             if nmid_tidxs[idy] is None:
-                nmid_tidxs[idy] = self.get_track_index(nidx, MOSWireType.DS, 'sig',  wire_idx=1, tile_idx=idy + tile_idx)
+                nmid_tidxs[idy] = self.get_track_index(nidx, MOSWireType.DS, 'sig', wire_idx=1, tile_idx=idy + tile_idx)
             if nmid_tidxd[idy] is None:
-                nmid_tidxd[idy] = self.get_track_index(nidx, MOSWireType.DS, 'sig',  wire_idx=0, tile_idx=idy + tile_idx)
+                nmid_tidxd[idy] = self.get_track_index(nidx, MOSWireType.DS, 'sig', wire_idx=0, tile_idx=idy + tile_idx)
         if nout_tidx is None:
             nout_tidx = self.get_track_index(nidx, MOSWireType.DS, 'sig', wire_idx=0, tile_idx=tile_idx + num_in-1)
 
@@ -720,37 +651,45 @@ class AndComplexColTall(MOSBase):
         # connect input, VDD/VSS, output
         in_warr, out_warr = [], []
         for idy in range(num_in):
+            _ctidx = idy + tile_idx  # Current tile index
             # connect input
             tid = TrackID(hm_layer, in_tidx[idy], width=tr_w_in)
-            in_warr.append(self.connect_to_tracks([unit_inst[idy + tile_idx].get_pin('pg'),
-                                                   unit_inst[idy + tile_idx].get_pin('ng')], tid, min_len_mode=MinLenMode.MIDDLE))
+            in_warr.append(self.connect_to_tracks([unit_inst[_ctidx].get_pin('pg'), unit_inst[_ctidx].get_pin('ng')],
+                                                  tid, min_len_mode=MinLenMode.MIDDLE))
 
             # connect VDD/VSS
-            vss_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ns'),
-                                                   unit_inst[idy + tile_idx].get_pin('VSS').track_id)
+            vss_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ns'),
+                                                   unit_inst[_ctidx].get_pin('VSS').track_id)
                             if idy == 0 else unit_inst[idy + tile_idx].get_pin('VSS'))
-            vdd_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ps'),
-                                                   unit_inst[idy + tile_idx].get_pin('VDD').track_id))
+            vdd_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ps'),
+                                                   unit_inst[_ctidx].get_pin('VDD').track_id))
 
             # connect output
             tid = TrackID(hm_layer, pout_tidx[idy], width=tr_w_out_h)
-            out_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('pd'), tid, min_len_mode=MinLenMode.MIDDLE))
+            out_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('pd'),
+                                                   tid, min_len_mode=MinLenMode.MIDDLE))
             if idy == num_in - 1:
                 tid = TrackID(hm_layer, nout_tidx, width=tr_w_out_h)
-                out_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('nd'), tid, min_len_mode=MinLenMode.MIDDLE))
+                out_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('nd'),
+                                                       tid, min_len_mode=MinLenMode.MIDDLE))
 
         # connect mid wires
         nmid_warr = []
         for idy in range(num_in):
+            _ctidx = idy + tile_idx  # Current tile index
             tids = TrackID(hm_layer, nmid_tidxs[idy], width=tr_w_nmid_h)
             tidd = TrackID(hm_layer, nmid_tidxd[idy], width=tr_w_nmid_h)
             if idy == 0:
-                nmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('nd'), tidd, min_len_mode=MinLenMode.MIDDLE))
+                nmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('nd'), tidd,
+                                                        min_len_mode=MinLenMode.MIDDLE))
             elif idy == num_in - 1:
-                nmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ns'), tids, min_len_mode=MinLenMode.MIDDLE))
+                nmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ns'), tids,
+                                                        min_len_mode=MinLenMode.MIDDLE))
             else:
-                nmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ns'), tids, min_len_mode=MinLenMode.MIDDLE))
-                nmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('nd'), tidd, min_len_mode=MinLenMode.MIDDLE))
+                nmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ns'), tids,
+                                                        min_len_mode=MinLenMode.MIDDLE))
+                nmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('nd'), tidd,
+                                                        min_len_mode=MinLenMode.MIDDLE))
 
         unit_h = unit_inst[0].master.bound_box.h
         for idy in range(num_in - 1):
@@ -765,7 +704,7 @@ class AndComplexColTall(MOSBase):
         return in_warr, out_warr
 
     def _make_nor_row(self, num_in: int, sig_locs: dict, tile_idx: int, unit_inst: list, 
-                      vm_locs: list, vss_warr: list, vdd_warr: list):
+                      vm_locs: list, vss_warr: list, vdd_warr: list) -> Tuple[List[WireArray], List[WireArray]]:
 
         # get sig locations
         gate_name = 'nor%d' % num_in
@@ -791,14 +730,15 @@ class AndComplexColTall(MOSBase):
         # get track locations
         nidx, pidx = 0, -1
         for idy in range(num_in):
+            _ctidx = idy + tile_idx  # Current tile index
             if in_tidx[idy] is None:
-                in_tidx[idy] = self.get_track_index(nidx, MOSWireType.G, 'sig', wire_idx=-1, tile_idx=idy + tile_idx)
+                in_tidx[idy] = self.get_track_index(nidx, MOSWireType.G, 'sig', wire_idx=-1, tile_idx=_ctidx)
             if nout_tidx[idy] is None:
-                nout_tidx[idy] = self.get_track_index(nidx, MOSWireType.DS, 'sig',  wire_idx=0, tile_idx=idy + tile_idx)
+                nout_tidx[idy] = self.get_track_index(nidx, MOSWireType.DS, 'sig',  wire_idx=0, tile_idx=_ctidx)
             if pmid_tidxs[idy] is None:
-                pmid_tidxs[idy] = self.get_track_index(pidx, MOSWireType.DS, 'sig',  wire_idx=1, tile_idx=idy + tile_idx)
+                pmid_tidxs[idy] = self.get_track_index(pidx, MOSWireType.DS, 'sig',  wire_idx=1, tile_idx=_ctidx)
             if pmid_tidxd[idy] is None:
-                pmid_tidxd[idy] = self.get_track_index(pidx, MOSWireType.DS, 'sig',  wire_idx=0, tile_idx=idy + tile_idx)
+                pmid_tidxd[idy] = self.get_track_index(pidx, MOSWireType.DS, 'sig',  wire_idx=0, tile_idx=_ctidx)
         if pout_tidx is None:
             pout_tidx = self.get_track_index(pidx, MOSWireType.DS, 'sig', wire_idx=0, tile_idx=tile_idx + num_in - 1)
 
@@ -814,37 +754,45 @@ class AndComplexColTall(MOSBase):
         # connect input, VDD/VSS, output
         in_warr, out_warr = [], []
         for idy in range(num_in):
+            _ctidx = idy + tile_idx  # Current tile index
             # connect input
-            tid = TrackID(hm_layer, in_tidx[idy] , width=tr_w_in)
-            in_warr.append(self.connect_to_tracks([unit_inst[idy + tile_idx].get_pin('ng'),
-                                                   unit_inst[idy + tile_idx].get_pin('pg')], tid, min_len_mode=MinLenMode.MIDDLE))
+            tid = TrackID(hm_layer, in_tidx[idy], width=tr_w_in)
+            in_warr.append(self.connect_to_tracks([unit_inst[_ctidx].get_pin('ng'), unit_inst[_ctidx].get_pin('pg')],
+                                                  tid, min_len_mode=MinLenMode.MIDDLE))
 
             # connect VDD/VSS
-            vdd_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ps'),
-                                                   unit_inst[idy + tile_idx].get_pin('VDD').track_id)
-                            if idy == 0 else unit_inst[idy + tile_idx].get_pin('VDD'))
-            vss_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ns'),
-                                                   unit_inst[idy + tile_idx].get_pin('VSS').track_id))
+            vdd_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ps'),
+                                                   unit_inst[_ctidx].get_pin('VDD').track_id)
+                            if idy == 0 else unit_inst[_ctidx].get_pin('VDD'))
+            vss_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ns'),
+                                                   unit_inst[_ctidx].get_pin('VSS').track_id))
 
             # connect output
-            tid = TrackID(hm_layer, nout_tidx[idy] , width=tr_w_out_h)
-            out_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('nd'), tid, min_len_mode=MinLenMode.MIDDLE))
+            tid = TrackID(hm_layer, nout_tidx[idy], width=tr_w_out_h)
+            out_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('nd'), tid,
+                                                   min_len_mode=MinLenMode.MIDDLE))
             if idy == num_in - 1:
-                tid = TrackID(hm_layer, pout_tidx , width=tr_w_out_h)
-                out_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('pd'), tid, min_len_mode=MinLenMode.MIDDLE))
+                tid = TrackID(hm_layer, pout_tidx, width=tr_w_out_h)
+                out_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('pd'), tid,
+                                                       min_len_mode=MinLenMode.MIDDLE))
 
         # connect mid wires
         pmid_warr = []
         for idy in range(num_in):
-            tids = TrackID(hm_layer, pmid_tidxs[idy] , width=tr_w_pmid_h)
-            tidd = TrackID(hm_layer, pmid_tidxd[idy] , width=tr_w_pmid_h)
+            _ctidx = idy + tile_idx  # Current tile_index
+            tids = TrackID(hm_layer, pmid_tidxs[idy], width=tr_w_pmid_h)
+            tidd = TrackID(hm_layer, pmid_tidxd[idy], width=tr_w_pmid_h)
             if idy == 0:
-                pmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('pd'), tidd, min_len_mode=MinLenMode.MIDDLE))
+                pmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('pd'),
+                                                        tidd, min_len_mode=MinLenMode.MIDDLE))
             elif idy == num_in - 1:
-                pmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ps'), tids, min_len_mode=MinLenMode.MIDDLE))
+                pmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ps'),
+                                                        tids, min_len_mode=MinLenMode.MIDDLE))
             else:
-                pmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('ps'), tids, min_len_mode=MinLenMode.MIDDLE))
-                pmid_warr.append(self.connect_to_tracks(unit_inst[idy + tile_idx].get_pin('pd'), tidd, min_len_mode=MinLenMode.MIDDLE))
+                pmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('ps'),
+                                                        tids, min_len_mode=MinLenMode.MIDDLE))
+                pmid_warr.append(self.connect_to_tracks(unit_inst[_ctidx].get_pin('pd'),
+                                                        tidd, min_len_mode=MinLenMode.MIDDLE))
 
         for idy in range(num_in - 1):
             col_idx = 0 if idy % 2 == 0 else 1
@@ -856,7 +804,7 @@ class AndComplexColTall(MOSBase):
         return in_warr, out_warr
 
     def _make_inv_row(self, sig_locs: dict, tile_idx: int, unit_inst: list, 
-                      vm_locs: list, vss_warr: list, vdd_warr: list):
+                      vm_locs: list, vss_warr: list, vdd_warr: list) -> Tuple[WireArray, WireArray]:
 
         # get sig locations
         in_tidx = sig_locs.get('inv_in', None)
@@ -885,8 +833,10 @@ class AndComplexColTall(MOSBase):
                                           unit_inst[tile_idx].get_pin('ng')], tid, min_len_mode=MinLenMode.MIDDLE)
 
         # connect VDD/VSS
-        vss_warr.append(self.connect_to_tracks(unit_inst[tile_idx].get_pin('ns'), unit_inst[tile_idx].get_pin('VSS').track_id))
-        vdd_warr.append(self.connect_to_tracks(unit_inst[tile_idx].get_pin('ps'), unit_inst[tile_idx].get_pin('VDD').track_id))
+        vss_warr.append(self.connect_to_tracks(unit_inst[tile_idx].get_pin('ns'),
+                                               unit_inst[tile_idx].get_pin('VSS').track_id))
+        vdd_warr.append(self.connect_to_tracks(unit_inst[tile_idx].get_pin('ps'),
+                                               unit_inst[tile_idx].get_pin('VDD').track_id))
 
         # connect output
         tid = TrackID(hm_layer, pout_tidx, width=tr_w_out_h)

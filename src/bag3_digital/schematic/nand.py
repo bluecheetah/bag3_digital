@@ -51,6 +51,7 @@ class bag3_digital__nand(Module):
             seg_n='segments of nmos',
             stack_p='number of transistors in a stack.',
             stack_n='number of transistors in a stack.',
+            shared_mid="True to have pull down devices shared intermediate nodes'. Defaults to False",
         )
 
     @classmethod
@@ -62,6 +63,7 @@ class bag3_digital__nand(Module):
             stack_p=1,
             stack_n=1,
             num_in=2,
+            shared_mid=False,
         )
 
     def get_master_basename(self) -> str:
@@ -69,7 +71,7 @@ class bag3_digital__nand(Module):
         return f'nand{num_in}'
 
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,
-               th_n: str, num_in: int, stack_p: int, stack_n: int) -> None:
+               th_n: str, num_in: int, stack_p: int, stack_n: int, shared_mid: bool) -> None:
         if seg_p <= 0:
             seg_p = seg
         if seg_n <= 0:
@@ -96,7 +98,7 @@ class bag3_digital__nand(Module):
         self.instances['XP'].design(w=w_p, lch=lch, seg=seg_p, intent=th_p, stack=stack_p)
         self.rename_instance('XP', f'XP<{num_in - 1}:0>', [(pg_name, pin_name)])
 
-        if stack_n & 1 and num_in > 2:
+        if (stack_n & 1 and num_in > 2) or shared_mid:
             # The layout requires the following for odd numbers of stacks and number of inputs > 2:
             # The pull-down network consists of input devices in series, where each of these input devices
             # consists of a segmented number of stacks

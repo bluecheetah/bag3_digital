@@ -8,6 +8,7 @@ from bag.layout.enum import DrawTaps
 
 from xbase.layout.mos.base import MOSBasePlaceInfo, MOSBase
 from xbase.layout.mos.guardring import GuardRing
+from xbase.layout.enum import MOSWireType
 
 from ...schematic.inv_chain import bag3_digital__inv_chain
 from .gates import InvChainCore
@@ -103,6 +104,59 @@ class InvChainCoreWithTaps(MOSBase):
 
         self.reexport(inst.get_port('in'))
         self.reexport(inst.get_port('out'))
+
+        # set properties
+        self.sch_params = master.sch_params
+
+
+class InvChainCoreWithTapRows(MOSBase):
+    def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
+        MOSBase.__init__(self, temp_db, params, **kwargs)
+
+    @classmethod
+    def get_params_info(cls) -> Mapping[str, str]:
+        return InvChainCore.get_params_info()
+
+    @classmethod
+    def get_default_param_values(cls) -> Mapping[str, Any]:
+        return InvChainCore.get_default_param_values()
+
+    @classmethod
+    def get_schematic_class(cls) -> Optional[Type[Module]]:
+        return bag3_digital__inv_chain
+
+    def draw_layout(self) -> None:
+        pinfo = MOSBasePlaceInfo.make_place_info(self.grid, self.params['pinfo'])
+        self.draw_base(pinfo)
+
+        # create masters
+        tile_ptap = 0
+        tile_logic = 1
+        tile_ntap = 2
+        logic_pinfo = self.get_tile_pinfo(tile_idx=tile_logic)
+        inv_params = self.params.copy(append=dict(vertical_sup=True), remove=['pinfo'])
+        master = self.new_template(InvChainCore, params=dict(pinfo=logic_pinfo, **inv_params))
+        inv_ncol = master.num_cols
+
+        # --- Placement --- #
+        inst = self.add_tile(master, tile_logic, 0)
+        self.add_substrate_contact(0, 0, tile_idx=tile_ptap, seg=inv_ncol)
+        self.add_substrate_contact(0, 0, tile_idx=tile_ntap, seg=inv_ncol)
+
+        self.set_mos_size()
+
+        # --- Routing --- #
+        # 1. supplies
+        ptap_tid = self.get_track_id(0, MOSWireType.DS, 'sup', tile_idx=tile_ptap)
+        vss_hm = self.connect_to_tracks(inst.get_all_port_pins('VSS'), ptap_tid)
+        self.add_pin('VSS', vss_hm)
+
+        ntap_tid = self.get_track_id(0, MOSWireType.DS, 'sup', tile_idx=tile_ntap)
+        vdd_hm = self.connect_to_tracks(inst.get_all_port_pins('VDD'), ntap_tid)
+        self.add_pin('VDD', vdd_hm)
+
+        for pin in ['in', 'out', 'outb']:
+            self.reexport(inst.get_port(pin))
 
         # set properties
         self.sch_params = master.sch_params

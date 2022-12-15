@@ -1,26 +1,11 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Blue Cheetah Analog Design Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 lib_name: bag3_digital
 cell_name: lvshift_core
 view_name: schematic
 bbox:
   - -575
-  - -265
+  - -225
   - 688
-  - 378
+  - 331
 terminals:
   VDD:
     obj:
@@ -375,195 +360,33 @@ terminals:
     ttype: 0
 shapes:
   -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - -105
-        - 215
-        - -95
-        - 225
-  -
     - 5
     - layer: 228
       purpose: 4294967295
-      net: outn
+      net: VSS
       points:
         -
-          - 60
-          - 20
+          - 220
+          - -120
         -
-          - 60
-          - 100
+          - 230
+          - -110
   -
     - 7
     - layer: 228
       purpose: 237
-      net: VDD
+      net: VSS
       origin:
-        - 180
-        - 367
-      alignment: 5
+        - 225
+        - -115
+      alignment: 4
       orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: VDD
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 180
-          - -260
-        -
-          - 300
-          - -260
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 180
-          - -120
-        -
-          - 220
-          - -120
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: rst_outp
-      points:
-        -
-          - 660
-          - -150
-        -
-          - 620
-          - -150
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: rst_outp
-      origin:
-        - 624
-        - -143
-      alignment: 8
-      orient: MY
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: rst_outp
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: rst_outn
-      points:
-        -
-          - -260
-          - -150
-        -
-          - -300
-          - -150
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: rst_outn
-      origin:
-        - -264
-        - -143
-      alignment: 2
-      orient: MY
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: rst_outn
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - 460
-          - 220
-        -
-          - 460
-          - 360
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: outp
-      origin:
-        - 573
-        - 254
-      alignment: 2
-      orient: R90
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: outp
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 300
-          - -260
-        -
-          - 300
-          - -220
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 175
-        - -265
-        - 185
-        - -255
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 335
-        - 355
-        - 345
-        - 365
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 140
-          - 220
-        -
-          - 160
-          - 220
+      text: VSS
   -
     - 5
     - layer: 228
@@ -574,17 +397,17 @@ shapes:
           - 300
           - -20
         -
-          - 300
-          - 20
+          - 310
+          - -10
   -
     - 7
     - layer: 228
       purpose: 237
       net: outp
       origin:
-        - 380
-        - 27
-      alignment: 5
+        - 305
+        - -15
+      alignment: 4
       orient: R0
       font: 5
       height: 10
@@ -596,46 +419,30 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: outn
-      points:
-        -
-          - -220
-          - 20
-        -
-          - 60
-          - 20
-  -
-    - 6
-    - layer: 228
-      purpose: 4294967295
-      net: rst_casc,inp
-      width: 10
-      points:
-        -
-          - -100
-          - -120
-        -
-          - -60
-          - -120
-      style: 2
-      begin_ext: 0
-      end_ext: 0
-  -
-    - 6
-    - layer: 228
-      purpose: 4294967295
       net: rst_casc,inn
-      width: 10
       points:
         -
           - 420
           - -120
         -
-          - 460
-          - -120
-      style: 2
-      begin_ext: 0
-      end_ext: 0
+          - 430
+          - -110
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst_casc,inn
+      origin:
+        - 425
+        - -115
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst_casc,inn
   -
     - 5
     - layer: 228
@@ -643,44 +450,48 @@ shapes:
       net: VSS
       points:
         -
-          - -180
-          - -260
-        -
-          - 60
-          - -260
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 340
-          - 80
-        -
-          - 340
-          - 120
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
           - 300
-          - 80
+          - -220
         -
-          - 340
-          - 80
+          - 310
+          - -210
   -
     - 7
     - layer: 228
       purpose: 237
       net: VSS
       origin:
-        - 140
-        - -253
-      alignment: 5
+        - 305
+        - -215
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - 140
+          - -120
+        -
+          - 150
+          - -110
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - 145
+        - -115
+      alignment: 4
       orient: R0
       font: 5
       height: 10
@@ -695,453 +506,21 @@ shapes:
       net: outn
       points:
         -
-          - 20
-          - 100
-        -
-          - 20
-          - 120
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
           - 60
-          - 100
+          - -20
         -
-          - 200
-          - 100
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 160
-          - 80
-        -
-          - 160
-          - 220
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
-          - -220
-          - 250
-        -
-          - -220
-          - 290
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 300
-          - -260
-        -
-          - 540
-          - -260
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 180
-          - -260
-        -
-          - 180
-          - -120
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 55
-        - 95
-        - 65
-        - 105
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 300
-          - 20
-        -
-          - 300
-          - 80
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - -220
-          - -260
-        -
-          - -180
-          - -260
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
-          - -220
-          - -120
-        -
-          - -220
-          - 20
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 580
-          - -260
-        -
-          - 580
-          - -180
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 580
-          - -120
-        -
-          - 580
-          - 20
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 55
-        - 15
-        - 65
-        - 25
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - -180
-          - -150
-        -
-          - -220
-          - -150
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 540
-          - -260
-        -
-          - 540
-          - -150
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - -180
-          - -260
-        -
-          - -180
-          - -150
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
-          - 200
-          - 100
-        -
-          - 200
-          - 220
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - 460
-          - 220
-        -
-          - 580
-          - 220
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 580
-          - -150
-        -
-          - 540
-          - -150
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 540
-          - -260
-        -
-          - 580
-          - -260
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - 20
-          - 320
-        -
-          - 20
-          - 360
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - -100
-          - 220
-        -
-          - -60
-          - 220
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
-          - 20
-          - 100
-        -
-          - 60
-          - 100
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - 20
-          - 360
-        -
-          - 340
-          - 360
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 295
-        - 75
-        - 305
-        - 85
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 15
-        - 355
-        - 25
-        - 365
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 160
-          - 80
-        -
-          - 300
-          - 80
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - -100
-          - 360
-        -
-          - 20
-          - 360
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - -100
-          - 220
-        -
-          - -100
-          - 360
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - 420
-          - 220
-        -
-          - 460
-          - 220
+          - 70
+          - -10
   -
     - 7
     - layer: 228
       purpose: 237
-      net: rst_casc,inn
+      net: outn
       origin:
-        - 424
-        - -108
-      alignment: 2
+        - 65
+        - -15
+      alignment: 4
       orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: rst_casc,inn
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - -185
-        - -265
-        - -175
-        - -255
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 535
-        - -265
-        - 545
-        - -255
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 140
-          - -120
-        -
-          - 180
-          - -120
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 295
-        - -265
-        - 305
-        - -255
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: rst_casc
-      points:
-        -
-          - 620
-          - 220
-        -
-          - 660
-          - 220
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: rst_casc
-      points:
-        -
-          - -260
-          - 220
-        -
-          - -300
-          - 220
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 455
-        - 215
-        - 465
-        - 225
-  -
-    - 7
-    - layer: 228
-      purpose: 237
-      net: outn
-      origin:
-        - -227
-        - 254
-      alignment: 2
-      orient: R90
       font: 5
       height: 10
       overbar: false
@@ -1152,67 +531,23 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
-      net: outp
+      net: rst_casc,inp
       points:
         -
-          - 580
-          - 250
+          - -60
+          - -120
         -
-          - 580
-          - 290
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
-          - 200
-          - 220
-        -
-          - 220
-          - 220
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VDD
-      points:
-        -
-          - 340
-          - 320
-        -
-          - 340
-          - 360
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 55
-        - -265
-        - 65
-        - -255
-  -
-    - 4
-    - layer: 228
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 295
-        - 15
-        - 305
-        - 25
+          - -50
+          - -110
   -
     - 7
     - layer: 228
       purpose: 237
       net: rst_casc,inp
       origin:
-        - -64
-        - -108
-      alignment: 8
+        - -55
+        - -115
+      alignment: 4
       orient: R0
       font: 5
       height: 10
@@ -1224,50 +559,114 @@ shapes:
     - 5
     - layer: 228
       purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - 60
+          - -220
+        -
+          - 70
+          - -210
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - 65
+        - -215
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 420
+          - 220
+        -
+          - 430
+          - 230
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 425
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outp
+      points:
+        -
+          - 340
+          - 120
+        -
+          - 350
+          - 130
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: outp
+      origin:
+        - 345
+        - 125
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outp
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
       net: outn
       points:
         -
-          - 60
-          - -20
+          - 220
+          - 220
         -
-          - 60
-          - 20
+          - 230
+          - 230
   -
-    - 5
+    - 7
     - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 60
-          - -260
-        -
-          - 180
-          - -260
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - -220
-          - -260
-        -
-          - -220
-          - -180
-  -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: VSS
-      points:
-        -
-          - 60
-          - -260
-        -
-          - 60
-          - -220
+      purpose: 237
+      net: outn
+      origin:
+        - 225
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outn
   -
     - 5
     - layer: 228
@@ -1276,41 +675,75 @@ shapes:
       points:
         -
           - 340
-          - 360
+          - 320
         -
-          - 460
-          - 360
+          - 350
+          - 330
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 345
+        - 325
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
   -
     - 5
     - layer: 228
       purpose: 4294967295
-      net: outp
+      net: VDD
       points:
         -
-          - 300
-          - 20
+          - -60
+          - 220
         -
-          - 580
-          - 20
+          - -50
+          - 230
   -
-    - 4
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -55
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
     - layer: 228
       purpose: 4294967295
-      net: ""
-      bbox:
-        - 175
-        - -125
-        - 185
-        - -115
+      net: outn
+      points:
+        -
+          - 20
+          - 120
+        -
+          - 30
+          - 130
   -
     - 7
     - layer: 228
       purpose: 237
       net: outn
       origin:
-        - -20
-        - 27
-      alignment: 5
+        - 25
+        - 125
+      alignment: 4
       orient: R0
       font: 5
       height: 10
@@ -1318,6 +751,370 @@ shapes:
       visible: true
       drafting: true
       text: outn
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outp
+      points:
+        -
+          - 140
+          - 220
+        -
+          - 150
+          - 230
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: outp
+      origin:
+        - 145
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outp
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 20
+          - 320
+        -
+          - 30
+          - 330
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 25
+        - 325
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - 580
+          - -180
+        -
+          - 590
+          - -170
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outp
+      points:
+        -
+          - 580
+          - -120
+        -
+          - 590
+          - -110
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - 580
+          - -150
+        -
+          - 590
+          - -140
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outp
+      points:
+        -
+          - 580
+          - 250
+        -
+          - 590
+          - 260
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outp
+      points:
+        -
+          - 580
+          - 190
+        -
+          - 590
+          - 200
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VDD
+      points:
+        -
+          - 580
+          - 220
+        -
+          - 590
+          - 230
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst_outp
+      points:
+        -
+          - 620
+          - -150
+        -
+          - 630
+          - -140
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst_casc
+      points:
+        -
+          - 620
+          - 220
+        -
+          - 630
+          - 230
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - 585
+        - -175
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst_outp
+      origin:
+        - 625
+        - -145
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst_outp
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VSS
+      origin:
+        - 585
+        - -145
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: outp
+      origin:
+        - 585
+        - -115
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outp
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: outp
+      origin:
+        - 585
+        - 195
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outp
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst_casc
+      origin:
+        - 625
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst_casc
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - 585
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: outp
+      origin:
+        - 585
+        - 255
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outp
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst_outn
+      points:
+        -
+          - -260
+          - -150
+        -
+          - -250
+          - -140
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: rst_casc
+      points:
+        -
+          - -260
+          - 220
+        -
+          - -250
+          - 230
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - -220
+          - -180
+        -
+          - -210
+          - -170
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outn
+      points:
+        -
+          - -220
+          - -120
+        -
+          - -210
+          - -110
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: VSS
+      points:
+        -
+          - -220
+          - -150
+        -
+          - -210
+          - -140
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outn
+      points:
+        -
+          - -220
+          - 250
+        -
+          - -210
+          - 260
+  -
+    - 5
+    - layer: 228
+      purpose: 4294967295
+      net: outn
+      points:
+        -
+          - -220
+          - 190
+        -
+          - -210
+          - 200
   -
     - 5
     - layer: 228
@@ -1328,62 +1125,66 @@ shapes:
           - -220
           - 220
         -
-          - -100
-          - 220
+          - -210
+          - 230
   -
     - 7
     - layer: 228
       purpose: 237
-      net: rst_casc
+      net: VSS
       origin:
-        - -280
-        - 227
-      alignment: 5
+        - -215
+        - -175
+      alignment: 4
       orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: rst_casc
+      text: VSS
   -
     - 7
     - layer: 228
       purpose: 237
-      net: rst_casc
+      net: rst_outn
       origin:
-        - 640
-        - 227
-      alignment: 5
+        - -255
+        - -145
+      alignment: 4
       orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: rst_casc
+      text: rst_outn
   -
-    - 5
+    - 7
     - layer: 228
-      purpose: 4294967295
-      net: outn
-      points:
-        -
-          - -220
-          - 150
-        -
-          - -220
-          - 190
+      purpose: 237
+      net: VSS
+      origin:
+        - -215
+        - -145
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
   -
     - 7
     - layer: 228
       purpose: 237
       net: outn
       origin:
-        - -227
-        - 186
-      alignment: 8
-      orient: R90
+        - -215
+        - -115
+      alignment: 4
+      orient: R0
       font: 5
       height: 10
       overbar: false
@@ -1391,33 +1192,69 @@ shapes:
       drafting: true
       text: outn
   -
-    - 5
-    - layer: 228
-      purpose: 4294967295
-      net: outp
-      points:
-        -
-          - 580
-          - 150
-        -
-          - 580
-          - 190
-  -
     - 7
     - layer: 228
       purpose: 237
-      net: outp
+      net: outn
       origin:
-        - 573
-        - 186
-      alignment: 8
-      orient: R90
+        - -215
+        - 195
+      alignment: 4
+      orient: R0
       font: 5
       height: 10
       overbar: false
       visible: true
       drafting: true
-      text: outp
+      text: outn
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: rst_casc
+      origin:
+        - -255
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst_casc
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: VDD
+      origin:
+        - -215
+        - 225
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 7
+    - layer: 228
+      purpose: 237
+      net: outn
+      origin:
+        - -215
+        - 255
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outn
 instances:
   XINN:
     lib_name: xbase
@@ -1525,9 +1362,6 @@ instances:
       l:
         - 3
         - 10n
-      nf:
-        - 3
-        - 1
       w:
         - 3
         - 4
@@ -1554,9 +1388,6 @@ instances:
       l:
         - 3
         - 10n
-      nf:
-        - 3
-        - 1
       w:
         - 3
         - 4
@@ -1622,19 +1453,19 @@ instances:
 props:
   connectivityLastUpdated:
     - 0
-    - 19268
+    - 2577
   lastSchematicExtraction:
     - 4
-    - time_val: 1575008266
+    - time_val: 1623107533
   net#:
     - 0
-    - 15
+    - 0
   pin#:
     - 0
-    - 20
+    - 29
   schGeometryLastUpdated:
     - 0
-    - 19268
+    - 2577
   schGeometryVersion:
     - 3
     - sch.ds.gm.1.4
@@ -1644,10 +1475,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 19268
+    - 2577
   _dbvCvTimeStamp:
     - 0
-    - 19268
+    - 2577
   cdbRevision:
     - 0
     - 227612

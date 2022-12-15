@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from typing import Any, Dict, cast, Type, Optional, List, Tuple
+from enum import IntEnum
 
 from bag.design.module import Module
 from bag.layout.template import TemplateDB
@@ -22,6 +23,11 @@ from bag.util.importlib import import_class
 
 from xbase.layout.mos.base import MOSBase
 from xbase.layout.mos.top import GenericWrapper
+
+
+class RstType(IntEnum):
+    RESET = 0
+    SET = 1
 
 
 class STDCellWithTap(MOSBase):

@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Blue Cheetah Analog Design Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 lib_name: bag3_digital
 cell_name: rst_flop
 view_name: symbol
@@ -87,19 +72,6 @@ terminals:
           - 144
     stype: 0
     ttype: 1
-  outb:
-    obj:
-      - 0
-      - layer: 229
-        purpose: 4294967295
-        net: ""
-        bbox:
-          - 196
-          - 106
-          - 204
-          - 114
-    stype: 0
-    ttype: 1
   rst:
     obj:
       - 0
@@ -114,62 +86,6 @@ terminals:
     stype: 0
     ttype: 0
 shapes:
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 0
-          - 60
-        -
-          - 40
-          - 60
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 6
-        - 70
-      alignment: 1
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: rst
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 200
-          - 110
-        -
-          - 160
-          - 110
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 194
-        - 120
-      alignment: 7
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: outb
   -
     - 0
     - layer: 236
@@ -283,6 +199,18 @@ shapes:
           - 160
           - 140
   -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 60
+        -
+          - 40
+          - 60
+  -
     - 8
     - layer: 231
       purpose: 237
@@ -354,22 +282,6 @@ shapes:
       net: ""
       origin:
         - 90
-        - 6
-      alignment: 7
-      orient: R270
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VSS
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 90
         - 214
       alignment: 1
       orient: R270
@@ -379,6 +291,22 @@ shapes:
       visible: true
       drafting: true
       text: VDD
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 90
+        - 6
+      alignment: 7
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
   -
     - 7
     - layer: 229
@@ -395,35 +323,48 @@ shapes:
       visible: true
       drafting: true
       text: out
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 6
+        - 70
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rst
 instances:
   {}
 props:
   interfaceLastChanged:
     - 4
-    - time_val: 1564601415
+    - time_val: 1614063539
   partName:
     - 3
     - rst_flop
   pin#:
     - 0
-    - 12
+    - 13
   portOrder:
     - 5
     - name: ILList
-      bin_val: ("out" "outb" "VDD" "VSS" "clk" "in" "rst")
+      bin_val: ("out" "VDD" "VSS" "clk" "in" "rst")
   vendorName:
     - 3
     - ""
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 296
+    - 258
   _dbvCvTimeStamp:
     - 0
-    - 296
+    - 258
   cdbRevision:
     - 0
     - 227612
-  cdnSPDesignMajorVersion:
-    - 0
-    - 2

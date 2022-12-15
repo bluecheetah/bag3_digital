@@ -1,0 +1,420 @@
+lib_name: bag3_digital
+cell_name: cml_latch_res
+view_name: symbol
+bbox:
+  - -4
+  - -4
+  - 518
+  - 301
+terminals:
+  VDD:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 196
+          - 276
+          - 204
+          - 284
+    stype: 1
+    ttype: 2
+  VSS:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 196
+          - -4
+          - 204
+          - 4
+    stype: 2
+    ttype: 2
+  clk:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 76
+          - 4
+          - 84
+    stype: 0
+    ttype: 0
+  clkb:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 56
+          - 4
+          - 64
+    stype: 0
+    ttype: 0
+  inn:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 156
+          - 4
+          - 164
+    stype: 0
+    ttype: 0
+  inp:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 196
+          - 4
+          - 204
+    stype: 0
+    ttype: 0
+  outn:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 396
+          - 156
+          - 404
+          - 164
+    stype: 0
+    ttype: 1
+  outp:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - 396
+          - 196
+          - 404
+          - 204
+    stype: 0
+    ttype: 1
+  rstb:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 116
+          - 4
+          - 124
+    stype: 0
+    ttype: 0
+  vbias:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 36
+          - 4
+          - 44
+    stype: 0
+    ttype: 2
+  vcm:
+    obj:
+      - 0
+      - layer: 229
+        purpose: 4294967295
+        net: ""
+        bbox:
+          - -4
+          - 16
+          - 4
+          - 24
+    stype: 0
+    ttype: 0
+shapes:
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 204
+        - 10
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 6
+        - 210
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: inp
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 6
+        - 170
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: inn
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 6
+        - 90
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clk
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 394
+        - 210
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outp
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 394
+        - 170
+      alignment: 7
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: outn
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 234
+        - 270
+      alignment: 1
+      orient: R180
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+  -
+    - 8
+    - layer: 236
+      purpose: 237
+      net: ""
+      origin:
+        - 390
+        - 290
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: "[@instanceName]"
+      evaluator: cdsNLPEvalText
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 6
+        - 130
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: rstb
+  -
+    - 8
+    - layer: 231
+      purpose: 237
+      net: ""
+      origin:
+        - 200
+        - 90
+      alignment: 5
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: "[@partName]"
+      evaluator: cdsNLPEvalText
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 9
+        - 50
+      alignment: 7
+      orient: MY
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: vbias
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 9
+        - 70
+      alignment: 7
+      orient: MY
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: clkb
+  -
+    - 0
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      bbox:
+        - 0
+        - 0
+        - 400
+        - 280
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 9
+        - 30
+      alignment: 7
+      orient: MY
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: vcm
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 204
+        - 270
+      alignment: 1
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VDD
+instances:
+  {}
+props:
+  instNamePrefix:
+    - 3
+    - X
+  interfaceLastChanged:
+    - 4
+    - time_val: 1623092752
+  partName:
+    - 3
+    - cml_latch_res
+  pin#:
+    - 0
+    - 15
+  vendorName:
+    - 3
+    - ""
+app_defs:
+  _dbLastSavedCounter:
+    - 0
+    - 412
+  _dbvCvTimeStamp:
+    - 0
+    - 412
+  cdbRevision:
+    - 0
+    - 227612
+  cdnSPDesignMajorVersion:
+    - 0
+    - 2

@@ -1,25 +1,10 @@
-# SPDX-License-Identifier: Apache-2.0
-# Copyright 2019 Blue Cheetah Analog Design Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 lib_name: bag3_digital
 cell_name: nor
 view_name: symbol
 bbox:
   - -4
   - -4
-  - 288
+  - 238
   - 164
 terminals:
   VDD:
@@ -76,17 +61,25 @@ terminals:
     ttype: 1
 shapes:
   -
-    - 2
+    - 0
+    - layer: 236
+      purpose: 4294967295
+      net: ""
+      bbox:
+        - 0
+        - 0
+        - 200
+        - 160
+  -
+    - 0
     - layer: 231
       purpose: 4294967295
       net: ""
-      ang_start: 4.7123889803846897
-      ang_stop: 5.497787143782138
       bbox:
-        - 100
-        - 60
-        - 128
-        - 81
+        - 50
+        - 40
+        - 150
+        - 120
   -
     - 5
     - layer: 231
@@ -94,11 +87,44 @@ shapes:
       net: ""
       points:
         -
-          - 0
-          - 80
+          - 100
+          - 160
         -
-          - 88
-          - 80
+          - 100
+          - 120
+  -
+    - 7
+    - layer: 229
+      purpose: 237
+      net: ""
+      origin:
+        - 90
+        - 6
+      alignment: 7
+      orient: R270
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: VSS
+  -
+    - 8
+    - layer: 231
+      purpose: 237
+      net: ""
+      origin:
+        - 45
+        - 135
+      alignment: 4
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: "[@cellName]"
+      evaluator: cdsNLPEvalText
   -
     - 7
     - layer: 229
@@ -116,17 +142,106 @@ shapes:
       drafting: true
       text: in<1:0>
   -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 140
+          - 80
+        -
+          - 200
+          - 80
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 100
+          - 0
+        -
+          - 100
+          - 40
+  -
+    - 8
+    - layer: 236
+      purpose: 237
+      net: ""
+      origin:
+        - 110
+        - 130
+      alignment: 2
+      orient: R0
+      font: 5
+      height: 10
+      overbar: false
+      visible: true
+      drafting: true
+      text: "[@instanceName]"
+      evaluator: cdsNLPEvalText
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 0
+          - 80
+        -
+          - 88
+          - 80
+  -
     - 2
     - layer: 231
       purpose: 4294967295
       net: ""
-      ang_start: 0.78539816339744828
+      ang_start: 5.3558900891779739
+      ang_stop: 0.92729521800161219
+      bbox:
+        - 80
+        - 60
+        - 90
+        - 100
+  -
+    - 2
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      ang_start: 4.7123889803846897
       ang_stop: 1.5707963267948966
       bbox:
+        - 110
+        - 60
+        - 130
         - 100
-        - 79
-        - 128
-        - 100
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 80
+          - 100
+        -
+          - 110
+          - 100
+  -
+    - 5
+    - layer: 231
+      purpose: 4294967295
+      net: ""
+      points:
+        -
+          - 80
+          - 60
+        -
+          - 110
+          - 60
   -
     - 4
     - layer: 231
@@ -154,18 +269,6 @@ shapes:
       drafting: true
       text: out
   -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 100
-          - 160
-        -
-          - 100
-          - 120
-  -
     - 7
     - layer: 229
       purpose: 237
@@ -181,148 +284,18 @@ shapes:
       visible: true
       drafting: true
       text: VDD
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 100
-          - 0
-        -
-          - 100
-          - 40
-  -
-    - 7
-    - layer: 229
-      purpose: 237
-      net: ""
-      origin:
-        - 90
-        - 6
-      alignment: 7
-      orient: R270
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: VSS
-  -
-    - 0
-    - layer: 236
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 0
-        - 0
-        - 200
-        - 160
-  -
-    - 8
-    - layer: 236
-      purpose: 237
-      net: ""
-      origin:
-        - 160
-        - 120
-      alignment: 2
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: "[@instanceName]"
-      evaluator: cdsNLPEvalText
-  -
-    - 8
-    - layer: 231
-      purpose: 237
-      net: ""
-      origin:
-        - 115
-        - 55
-      alignment: 4
-      orient: R0
-      font: 5
-      height: 10
-      overbar: false
-      visible: true
-      drafting: true
-      text: "[@partName]"
-      evaluator: cdsNLPEvalText
-  -
-    - 0
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      bbox:
-        - 60
-        - 40
-        - 160
-        - 120
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 140
-          - 80
-        -
-          - 200
-          - 80
-  -
-    - 2
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      ang_start: 5.497787143782138
-      ang_stop: 0.78539816339744828
-      bbox:
-        - 80
-        - 60
-        - 88
-        - 100
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 80
-          - 60
-        -
-          - 100
-          - 60
-  -
-    - 5
-    - layer: 231
-      purpose: 4294967295
-      net: ""
-      points:
-        -
-          - 80
-          - 100
-        -
-          - 100
-          - 100
 instances:
   {}
 props:
   interfaceLastChanged:
     - 4
-    - time_val: 1559610580
+    - time_val: 1614060273
   partName:
     - 3
     - nor
   pin#:
     - 0
-    - 6
+    - 19
   portOrder:
     - 5
     - name: ILList
@@ -333,13 +306,10 @@ props:
 app_defs:
   _dbLastSavedCounter:
     - 0
-    - 448
+    - 489
   _dbvCvTimeStamp:
     - 0
-    - 448
+    - 489
   cdbRevision:
     - 0
     - 227612
-  cdnSPDesignMajorVersion:
-    - 0
-    - 2

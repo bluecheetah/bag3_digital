@@ -82,6 +82,10 @@ class bag3_digital__inv_tristate(Module):
             th_n='NMOS threshold.',
             has_rsthb='True to add reset-high-bar pin.',
             out_cap_large='True if output parasitic cap is large.  Only affect behavioral model.',
+            separate_out='True to have pull-up/pull-down network drains unconnected',
+            has_vtop='True if PMOS drain is not connected to VDD, but instead VTOP',
+            has_vbot='True if NMOS drain is not connected to VSS, but instead VBOT',
+            in_inside='True if "in" is on the inside devices, closer to the output'
         )
 
     @classmethod
@@ -94,11 +98,16 @@ class bag3_digital__inv_tristate(Module):
             seg_n=-1,
             stack_p=1,
             stack_n=1,
+            separate_out=False,
+            has_vtop=False,
+            has_vbot=False,
+            in_inside=False
         )
 
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,
                th_n: str, has_rsthb: bool, out_cap_large: Optional[bool], stack_p: int,
-               stack_n: int) -> None:
+               stack_n: int, separate_out: bool, has_vtop: bool, has_vbot: bool,
+               in_inside: bool) -> None:
         if seg_p <= 0:
             seg_p = seg
         if seg_n <= 0:
@@ -107,8 +116,12 @@ class bag3_digital__inv_tristate(Module):
             raise ValueError('Cannot have negative number of segments.')
 
         # in net for pmos and nmos with stacking
-        pin_list = ['enb'] * stack_p + ['in'] * stack_p
-        nin_list = ['en'] * stack_n + ['in'] * stack_n
+        if in_inside:
+            pin_list = ['in'] * stack_p + ['enb'] * stack_p
+            nin_list = ['in'] * stack_n + ['en'] * stack_n
+        else:
+            pin_list = ['enb'] * stack_p + ['in'] * stack_p
+            nin_list = ['en'] * stack_n + ['in'] * stack_n
         nin_name = ','.join(nin_list)
         pin_name = ','.join(pin_list)
 
@@ -130,6 +143,25 @@ class bag3_digital__inv_tristate(Module):
             ng_name = f'g<{2 * stack_n - 1}:0>'
             self.reconnect_instance_terminal('XN', ng_name, nin_name)
 
-        self.set_pin_attribute('out', 'type', 'trireg')
-        if out_cap_large is not None:
-            self.set_pin_attribute('out', 'trireg_cap_large', str(out_cap_large))
+        if not separate_out:
+            self.set_pin_attribute('out', 'type', 'trireg')
+            if out_cap_large is not None:
+                self.set_pin_attribute('out', 'trireg_cap_large', str(out_cap_large))
+        else:
+            self.reconnect_instance_terminal('XN', 'd', 'nout')
+            self.reconnect_instance_terminal('XP', 'd', 'pout')
+            self.add_pin('pout', TermType.output)
+            self.add_pin('nout', TermType.output)
+            self.remove_pin('out')
+            self.set_pin_attribute('pout', 'type', 'trireg')
+            self.set_pin_attribute('nout', 'type', 'trireg')
+            if out_cap_large is not None:
+                self.set_pin_attribute('pout', 'trireg_cap_large', str(out_cap_large))
+                self.set_pin_attribute('nout', 'trireg_cap_large', str(out_cap_large))
+
+        if has_vbot:
+            self.reconnect_instance_terminal('XN', 's', 'VBOT')
+            self.add_pin('VBOT', TermType.inout)
+        if has_vtop:
+            self.reconnect_instance_terminal('XP', 's', 'VTOP')
+            self.add_pin('VTOP', TermType.inout)

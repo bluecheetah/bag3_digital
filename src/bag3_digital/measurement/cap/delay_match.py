@@ -21,7 +21,7 @@ import pprint
 
 from bag.simulation.core import TestbenchManager
 from bag.simulation.cache import SimulationDB, DesignInstance, SimResults, MeasureResult
-from bag.simulation.measure import MeasurementManager, MeasInfo
+from bag.simulation.measure import MeasurementManager, MeasurementManagerFSM, MeasInfo
 
 from bag3_testbenches.measurement.data.tran import EdgeType
 from bag3_testbenches.measurement.tran.digital import DigitalTranTB
@@ -31,7 +31,7 @@ from bag3_testbenches.measurement.digital.delay_match import DelayMatch
 from ..util import get_digital_wrapper_params, get_in_buffer_pin_names
 
 
-class CapDelayMatch(MeasurementManager):
+class CapDelayMatch(MeasurementManagerFSM):
     """Measures input capacitance by matching delay.
 
     Assumes that no parameters/corners are swept.
@@ -99,7 +99,8 @@ class CapDelayMatch(MeasurementManager):
     def wrapper_params(self) -> Mapping[str, Any]:
         return self._wrapper_params
 
-    def initialize(self, sim_db: SimulationDB, dut: DesignInstance) -> Tuple[bool, MeasInfo]:
+    def initialize(self, sim_db: SimulationDB, dut: DesignInstance,
+                   harnesses: Optional[Sequence[DesignInstance]] = None) -> Tuple[bool, MeasInfo]:
         specs = self.specs
         in_pin: str = specs['in_pin']
         search_params = specs['search_params']
@@ -203,7 +204,8 @@ class CapDelayMatch(MeasurementManager):
 
         return False, MeasInfo('init', {})
 
-    def get_sim_info(self, sim_db: SimulationDB, dut: DesignInstance, cur_info: MeasInfo
+    def get_sim_info(self, sim_db: SimulationDB, dut: DesignInstance, cur_info: MeasInfo,
+                     harnesses: Optional[Sequence[DesignInstance]] = None
                      ) -> Tuple[Union[Tuple[TestbenchManager, Mapping[str, Any]],
                                       MeasurementManager], bool]:
         state = cur_info.state

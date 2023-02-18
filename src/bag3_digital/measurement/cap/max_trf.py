@@ -15,18 +15,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Tuple, Mapping, Optional, Union, cast
+from typing import Any, Tuple, Mapping, Optional, Union, Sequence, cast
 
 from bag.simulation.core import TestbenchManager
 from bag.simulation.cache import SimulationDB, DesignInstance, SimResults, MeasureResult
-from bag.simulation.measure import MeasurementManager, MeasInfo
+from bag.simulation.measure import MeasurementManager, MeasurementManagerFSM, MeasInfo
 
 from bag3_testbenches.measurement.digital.max_trf import MaxRiseFallTime
 
 from ..util import get_digital_wrapper_params
 
 
-class CapMaxRiseFallTime(MeasurementManager):
+class CapMaxRiseFallTime(MeasurementManagerFSM):
     """Measures maximum output capacitance given maximum rise/fall time.
 
     Assumes that no parameters/corners are swept.  Adds buffers to all input pins.
@@ -77,7 +77,8 @@ class CapMaxRiseFallTime(MeasurementManager):
         super().__init__(*args, **kwargs)
         self._mm: Optional[MaxRiseFallTime] = None
 
-    def initialize(self, sim_db: SimulationDB, dut: DesignInstance) -> Tuple[bool, MeasInfo]:
+    def initialize(self, sim_db: SimulationDB, dut: DesignInstance,
+                   harnesses: Optional[Sequence[DesignInstance]] = None) -> Tuple[bool, MeasInfo]:
         specs = self.specs
         in_pin: str = specs['in_pin']
         out_pin: str = specs['out_pin']
@@ -99,7 +100,8 @@ class CapMaxRiseFallTime(MeasurementManager):
 
         return False, MeasInfo('max_trf', {})
 
-    def get_sim_info(self, sim_db: SimulationDB, dut: DesignInstance, cur_info: MeasInfo
+    def get_sim_info(self, sim_db: SimulationDB, dut: DesignInstance, cur_info: MeasInfo,
+                     harnesses: Optional[Sequence[DesignInstance]] = None
                      ) -> Tuple[Union[Tuple[TestbenchManager, Mapping[str, Any]],
                                       MeasurementManager], bool]:
         return self._mm, True

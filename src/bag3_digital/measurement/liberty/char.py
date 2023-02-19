@@ -24,9 +24,8 @@ from pybag.enum import TermType
 
 from bag.util.immutable import update_recursive
 from bag.concurrent.util import GatherHelper
-from bag.simulation.core import TestbenchManager
-from bag.simulation.cache import SimulationDB, DesignInstance, SimResults, MeasureResult
-from bag.simulation.measure import MeasInfo, MeasurementManager
+from bag.simulation.cache import SimulationDB, DesignInstance
+from bag.simulation.measure import MeasurementManager
 
 from bag3_liberty.enum import TimingSenseType, TimingType
 from bag3_liberty.util import get_bus_bit_name, parse_cdba_name, cdba_to_unusal
@@ -127,7 +126,8 @@ class LibertyCharMM(MeasurementManager):
             self._seq_mm_table[name] = cast(MeasurementManager, self.make_mm(mm_cls, seq_specs))
 
     async def async_measure_performance(self, name: str, sim_dir: Path, sim_db: SimulationDB,
-                                        dut: Optional[DesignInstance]) -> Dict[str, Any]:
+                                        dut: Optional[DesignInstance],
+                                        harnesses: Optional[Sequence[DesignInstance]] = None) -> Mapping[str, Any]:
         specs = self.specs
         in_cap_min: float = specs['in_cap_min_default']
         out_max_trf: float = specs['out_max_trf']
@@ -392,15 +392,3 @@ class LibertyCharMM(MeasurementManager):
                 cur_info['timing'] = timing_data
             else:
                 timing_list.extend(timing_data)
-
-    def initialize(self, sim_db: SimulationDB, dut: DesignInstance) -> Tuple[bool, MeasInfo]:
-        raise RuntimeError('Unused')
-
-    def get_sim_info(self, sim_db: SimulationDB, dut: DesignInstance, cur_info: MeasInfo
-                     ) -> Tuple[Union[Tuple[TestbenchManager, Mapping[str, Any]],
-                                      MeasurementManager], bool]:
-        raise RuntimeError('Unused')
-
-    def process_output(self, cur_info: MeasInfo, sim_results: Union[SimResults, MeasureResult]
-                       ) -> Tuple[bool, MeasInfo]:
-        raise RuntimeError('Unused')

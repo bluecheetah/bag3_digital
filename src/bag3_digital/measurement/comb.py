@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Any, Tuple, Optional, Union, Mapping
+from typing import Any, Optional, Mapping, Sequence
 
 from pathlib import Path
 
 from bag.simulation.base import get_bit_list
-from bag.simulation.core import TestbenchManager
-from bag.simulation.cache import DesignInstance, SimulationDB, SimResults, MeasureResult
-from bag.simulation.measure import MeasurementManager, MeasInfo
+from bag.simulation.cache import DesignInstance, SimulationDB
+from bag.simulation.measure import MeasurementManager
 
 from bag3_testbenches.measurement.digital.comb import CombLogicTimingMM
 
@@ -46,7 +45,8 @@ class BufferCombLogicTimingMM(MeasurementManager):
         super().__init__(*args, **kwargs)
 
     async def async_measure_performance(self, name: str, sim_dir: Path, sim_db: SimulationDB,
-                                        dut: Optional[DesignInstance]) -> Dict[str, Any]:
+                                        dut: Optional[DesignInstance],
+                                        harnesses: Optional[Sequence[DesignInstance]] = None) -> Mapping[str, Any]:
         specs = self.specs
         in_pin: str = specs['in_pin']
         buf_params: Optional[Mapping[str, Any]] = specs.get('buf_params', None)
@@ -87,15 +87,3 @@ class BufferCombLogicTimingMM(MeasurementManager):
         mm = sim_db.make_mm(CombLogicTimingMM, mm_specs)
 
         return await mm.async_measure_performance(name, sim_dir, sim_db, dut)
-
-    def initialize(self, sim_db: SimulationDB, dut: DesignInstance) -> Tuple[bool, MeasInfo]:
-        raise RuntimeError('Unused')
-
-    def get_sim_info(self, sim_db: SimulationDB, dut: DesignInstance, cur_info: MeasInfo
-                     ) -> Tuple[Union[Tuple[TestbenchManager, Mapping[str, Any]],
-                                      MeasurementManager], bool]:
-        raise RuntimeError('Unused')
-
-    def process_output(self, cur_info: MeasInfo, sim_results: Union[SimResults, MeasureResult]
-                       ) -> Tuple[bool, MeasInfo]:
-        raise RuntimeError('Unused')

@@ -84,17 +84,17 @@ class InverterBetaDesigner(DesignerBase):
             The InvMeas parameters.
 
         beta_min : float
-            The minimum PMOS-to-NMOS ratio. Defaults to 0.1.
+            The minimum PMOS-to-NMOS ratio. Defaults to 0.25.
 
         beta_max : float
-            The maximum PMOS-to-NMOS ratio. Defaults to 10.
+            The maximum PMOS-to-NMOS ratio. Defaults to 4.
 
         seg_n : int
             Optional. Specify to override the number of NMOS segments in gen_specs.
     """
 
     def __init__(self, root_dir: Path, sim_db: SimulationDB, dsn_specs: Mapping[str, Any]) -> None:
-        self._is_lay: bool = None
+        self._is_lay: bool = True
         self._dut_class: Union[Type[TemplateBase], Type[Module]] = None
         self._base_gen_specs: Param = None
         super().__init__(root_dir, sim_db, dsn_specs)
@@ -165,7 +165,7 @@ class InverterBetaDesigner(DesignerBase):
     def dut_class(self) -> Union[Type[TemplateBase], Type[Module]]:
         return self._dut_class
 
-    async def async_design(self, beta_min: float = 0.1, beta_max: float = 10, **kwargs: Any) -> Mapping[str, Any]:
+    async def async_design(self, beta_min: float = 0.25, beta_max: float = 4, **kwargs: Any) -> Mapping[str, Any]:
         """A coroutine that designs an inverter with equal pull-up and pull-down.
         This is done with a binary search on the PMOS sizing.
 
@@ -245,7 +245,7 @@ class InverterBetaDesigner(DesignerBase):
         """
         seg_p_min = int(math.ceil(beta_min * seg_n))
         seg_p_max = int(beta_max * seg_n)
-        return (seg_p_min, seg_p_max)
+        return seg_p_min, seg_p_max
 
     async def measure_dut(self, sim_id: str, dut: DesignInstance) -> Mapping[str, Any]:
         """A coroutine that measures the delay mismatch between the output rise and fall.

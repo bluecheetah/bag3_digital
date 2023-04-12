@@ -70,7 +70,7 @@ from ...schematic.rst_latch import bag3_digital__rst_latch
 
 
 class LatchCore(MOSBase):
-    """A transmission gate based latch."""
+    """A tristate inverter based latch."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
@@ -266,7 +266,7 @@ class LatchCore(MOSBase):
 
 
 class FlopCore(MOSBase):
-    """A transmission gate based flip-flop."""
+    """A tristate inverter based flip-flop."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
@@ -464,6 +464,7 @@ class FlopCore(MOSBase):
             self.connect_wires([s_inst.get_pin('nclk'), m_inst.get_pin('nclkb')])
             self.reexport(m_inst.get_port('clk'), net_name='clkb')
             self.reexport(m_inst.get_port('nclk'), net_name='nclkb')
+            self.reexport(s_inst.get_port('clkb'), net_name='clkb_s', hide=True)
             self.reexport(s_inst.get_port('nclkb'), net_name='nclkb_s')
         else:
             self.connect_wires([s_inst.get_pin('nclk'), m_inst.get_pin('nclkb'),
@@ -510,6 +511,7 @@ class FlopCore(MOSBase):
         self.reexport(m_inst.get_port('clkb'), net_name='clk')
         self.reexport(m_inst.get_port('nclkb'), net_name='nclk')
         self.reexport(m_inst.get_port('pclkb'), net_name='pclk')
+        self.reexport(s_inst.get_port('clk'), net_name='clk_s', hide=True)
         self.reexport(s_inst.get_port('pclk'), net_name='pclk_s')
         self.reexport(s_inst.get_port('outb'), net_name='outb')
         self.reexport(s_inst.get_port('noutb'), net_name='noutb')
@@ -546,7 +548,7 @@ class FlopCore(MOSBase):
 
 
 class RstLatchCore(MOSBase):
-    """A transmission gate based latch with reset pin."""
+    """A tristate inverter based latch with NAND reset."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
@@ -575,6 +577,7 @@ class RstLatchCore(MOSBase):
             fanout_kp='keeper stage fanout.',
             vertical_clk='True to have vertical clk and clkb',
             rst_type='SET or RESET; RESET by default',
+            vertical_sup='True to have supply unconnected on conn_layer; False by default',
         )
 
     @classmethod
@@ -591,6 +594,7 @@ class RstLatchCore(MOSBase):
             seg=1,
             vertical_clk=True,
             rst_type=RstType.RESET,
+            vertical_sup=False,
         )
 
     def draw_layout(self) -> None:
@@ -613,6 +617,7 @@ class RstLatchCore(MOSBase):
         fanout_in: float = self.params['fanout_in']
         fanout_kp: float = self.params['fanout_kp']
         vertical_clk: bool = self.params['vertical_clk']
+        vertical_sup: bool = self.params['vertical_sup']
         rst_type: Union[str, RstType] = self.params['rst_type']
         if isinstance(rst_type, str):
             rst_type = RstType[rst_type]
@@ -647,7 +652,7 @@ class RstLatchCore(MOSBase):
             nout=nd1,
         )
         params = dict(pinfo=pinfo, seg=seg, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
-                      sig_locs=nor_sig_locs)
+                      sig_locs=nor_sig_locs, vertical_sup=vertical_sup)
         if rst_type is RstType.RESET:
             nor_master = self.new_template(NOR2Core, params=params)
             rst_name = 'rst'
@@ -666,7 +671,7 @@ class RstLatchCore(MOSBase):
             pen=sig_locs.get('pclkb', pg1),
         )
         params = dict(pinfo=pinfo, seg=seg_t0, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
-                      vertical_out=False, sig_locs=t0_sig_locs)
+                      vertical_out=False, sig_locs=t0_sig_locs, vertical_sup=vertical_sup)
         t0_master = self.new_template(InvTristateCore, params=params)
 
         t1_sig_locs = dict(
@@ -677,7 +682,7 @@ class RstLatchCore(MOSBase):
             pen=sig_locs.get('pclk', pg0),
         )
         params = dict(pinfo=pinfo, seg=seg_t1, w_p=w_p, w_n=w_n, ridx_p=ridx_p, ridx_n=ridx_n,
-                      vertical_out=False, sig_locs=t1_sig_locs)
+                      vertical_out=False, sig_locs=t1_sig_locs, vertical_sup=vertical_sup)
         t1_master = self.new_template(InvTristateCore, params=params)
 
         # set size
@@ -699,8 +704,8 @@ class RstLatchCore(MOSBase):
         # connect/export VSS/VDD
         vss_list, vdd_list = [], []
         for inst in (t0, t1, nor):
-            vss_list.append(inst.get_pin('VSS'))
-            vdd_list.append(inst.get_pin('VDD'))
+            vss_list.extend(inst.get_all_port_pins('VSS'))
+            vdd_list.extend(inst.get_all_port_pins('VDD'))
         self.add_pin('VSS', self.connect_wires(vss_list))
         self.add_pin('VDD', self.connect_wires(vdd_list))
 
@@ -770,7 +775,7 @@ class RstLatchCore(MOSBase):
 
 
 class RstLatchCore2Row(MOSBase):
-    """A transmission gate based latch with reset pin and optional scanability, 2 row layout."""
+    """A tristate inverter based latch with NAND reset and optional scanability, 2 row layout."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
@@ -1052,7 +1057,7 @@ class RstLatchCore2Row(MOSBase):
 
 
 class FlopCore2Row(MOSBase):
-    """A transmission gate based flip-flop in 2 rows."""
+    """A tristate inverter based flip-flop in 2 rows."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
@@ -1225,6 +1230,8 @@ class FlopCore2Row(MOSBase):
             self.reexport(m_inst.get_port('scan_en'))
 
         # connect clk to clkb of m_inst and input of inverter
+        if not seg_ck > 0:
+            raise ValueError("only seg_ck > 0 currently supported")
         clk_hm = m_inst.get_pin('clkb')
         self.connect_to_track_wires([clk_hm, b_inst.get_pin('in')], s_inst.get_pin('clk_vm'))
         self.add_pin('clk', clk_hm)
@@ -1242,7 +1249,7 @@ class FlopCore2Row(MOSBase):
 
 
 class ScanRstLatchCore(MOSBase):
-    """A transmission gate based latch with reset pin and scanability, optimized."""
+    """A tristate inverter based latch with reset pin and scanability, optimized."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)
@@ -1471,7 +1478,7 @@ class ScanRstLatchCore(MOSBase):
 
 
 class ScanRstFlopCore(MOSBase):
-    """A transmission gate based flip-flop in 2 rows with 1 row latches."""
+    """A tristate inverter based flip-flop in 2 rows with 1 row latches."""
 
     def __init__(self, temp_db: TemplateDB, params: Param, **kwargs: Any) -> None:
         MOSBase.__init__(self, temp_db, params, **kwargs)

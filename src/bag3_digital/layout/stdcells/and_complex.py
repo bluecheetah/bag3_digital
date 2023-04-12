@@ -73,7 +73,8 @@ class AndComplexRow(MOSBase):
         ng0_tidx = self.get_track_index(0, MOSWireType.G, 'sig', 0)
         ng0_tid = self.get_track_id(0, MOSWireType.G, 'sig', 0)
         nd_tidx = self.get_track_index(0, MOSWireType.DS, 'sig', -2)
-        sig_locs_inv = {'nin': ng0_tidx, 'nin0': ng0_tidx, 'nin1': ng1_tidx, 'nin2': pg0_tidx}
+        sig_locs_inv = {'nin': ng0_tidx, 'nin0': ng0_tidx, 'nin1': ng1_tidx, 'nin2': pg0_tidx, 'nout': nd_tidx,
+                        'pout': pd_tidx}
         sig_locs_nor = {'nin': pg1_tidx, 'nin0': pg1_tidx, 'nin1': pg0_tidx, 'nin2': ng1_tidx, 'nout': nd_tidx,
                         'pout': pd_tidx}
 
@@ -503,10 +504,11 @@ class AndComplexColTall(MOSBase):
 
         # ===== Routing =====
         # export input
+        in_shift = get_in_shift(num_in)
         w_sig_vm = tr_manager.get_width(vm_layer, 'sig')
         for idy in range(num_in):
             pname = 'in<%d>' % idy
-            vm_tidx = vm_locs[1]
+            vm_tidx = vm_locs[in_shift[idy]]
             _in = self.connect_to_tracks(in_list[idy], TrackID(vm_layer, vm_tidx, w_sig_vm),
                                          min_len_mode=MinLenMode.MIDDLE)
             self.add_pin(pname, _in)
@@ -857,3 +859,14 @@ def get_nand_in_list(num_in: int) -> Sequence[int]:
         return [3] * (q - 1) + [2, 2]
     else:  # r == 2
         return [3] * q + [2]
+
+
+def get_in_shift(num_in: int) -> Sequence[int]:
+    nand_in_list = get_nand_in_list(num_in)
+    ans = []
+    for nand_num in nand_in_list:
+        if nand_num == 2:
+            ans.extend([1, 1])
+        else:
+            ans.extend([1, 1, 0])
+    return ans

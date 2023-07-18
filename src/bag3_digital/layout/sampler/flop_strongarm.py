@@ -47,6 +47,7 @@ class FlopStrongArm(MOSBase):
             has_rstlb='True to enable rstlb functionality.',
             swap_outbuf='True to swap output buffers, so outp is on opposite side of inp.',
             out_pitch='output wire pitch from center.',
+            export_mid='True to export intermediate nodes; False by default.',
         )
 
     @classmethod
@@ -55,6 +56,7 @@ class FlopStrongArm(MOSBase):
             has_rstlb=False,
             swap_outbuf=False,
             out_pitch=0.5,
+            export_mid=False,
         )
 
     def draw_layout(self) -> None:
@@ -66,6 +68,7 @@ class FlopStrongArm(MOSBase):
         has_rstlb: bool = self.params['has_rstlb']
         swap_outbuf: bool = self.params['swap_outbuf']
         out_pitch: HalfInt = HalfInt.convert(self.params['out_pitch'])
+        export_mid: bool = self.params['export_mid']
 
         # create masters
         sr_pinfo = self.get_tile_pinfo(1)
@@ -86,7 +89,7 @@ class FlopStrongArm(MOSBase):
             # analog style
             sa_params = sa_params.copy(append=dict(pinfo=sa_pinfo, has_rstb=has_rstlb,
                                                    even_center=even_center, vertical_out=False,
-                                                   vertical_rstb=False))
+                                                   vertical_rstb=False, export_mid=export_mid))
             sa_master: MOSBase = self.new_template(SAFrontend, params=sa_params)
 
         # placement
@@ -109,8 +112,12 @@ class FlopStrongArm(MOSBase):
         sb = sr.get_pin('sb')
         outp = sa.get_all_port_pins('outp')
         outn = sa.get_all_port_pins('outn')
-        self.connect_to_track_wires(outp, rb)
-        self.connect_to_track_wires(outn, sb)
+        midp = self.connect_to_track_wires(outp, rb)
+        midn = self.connect_to_track_wires(outn, sb)
+        self.add_pin('midp', midp, hide=not export_mid)
+        self.add_pin('midn', midn, hide=not export_mid)
+        for _pin in ['tail', 'midp', 'midn']:
+            self.reexport(sa.get_port(_pin), net_name=f'fe_{_pin}')
 
         # connect reset signals
         if has_rstlb:
@@ -143,5 +150,6 @@ class FlopStrongArm(MOSBase):
         self.sch_params = dict(
             sa_params=sa_master.sch_params.copy(remove=['has_rstb']),
             sr_params=sr_master.sch_params.copy(remove=['has_rstb']),
-            has_rstlb=has_rstlb
+            has_rstlb=has_rstlb,
+            export_mid=export_mid,
         )

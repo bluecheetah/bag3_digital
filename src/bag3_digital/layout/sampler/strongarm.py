@@ -259,12 +259,14 @@ class SAFrontend(MOSBase):
     def get_params_info(cls) -> Dict[str, str]:
         ans = SAFrontendHalf.get_params_info()
         ans['even_center'] = 'True to force center column to be even.'
+        ans['export_mid'] = 'True to export intermediate nodes; False by default.'
         return ans
 
     @classmethod
     def get_default_param_values(cls) -> Dict[str, Any]:
         ans = SAFrontendHalf.get_default_param_values()
         ans['even_center'] = False
+        ans['export_mid'] = False
         return ans
 
     def draw_layout(self):
@@ -277,6 +279,7 @@ class SAFrontend(MOSBase):
         vertical_out: bool = self.params['vertical_out']
         vertical_rstb: bool = self.params['vertical_rstb']
         even_center: bool = self.params['even_center']
+        export_mid: bool = self.params['export_mid']
 
         # placement
         nsep = self.min_sep_col
@@ -327,7 +330,10 @@ class SAFrontend(MOSBase):
         clk = self.connect_wires([corel.get_pin('clk'), corer.get_pin('clk')])
         vss = self.connect_wires([corel.get_pin('VSS'), corer.get_pin('VSS')])
         vdd = self.connect_wires([corel.get_pin('VDD'), corer.get_pin('VDD')])
-        self.connect_wires([corel.get_pin('tail'), corer.get_pin('tail')])
+        tail = self.connect_wires([corel.get_pin('tail'), corer.get_pin('tail')])
+        self.add_pin('tail', tail, hide=not export_mid)
+        self.reexport(corel.get_port('mid'), net_name='midn', hide=not export_mid)
+        self.reexport(corer.get_port('mid'), net_name='midp', hide=not export_mid)
         self.add_pin('clk', clk)
         self.add_pin('VDD', vdd)
         self.add_pin('VSS', vss)
@@ -356,6 +362,6 @@ class SAFrontend(MOSBase):
                 self.add_pin('prstbr', rstr, hide=True)
 
         if has_bridge:
-            self.sch_params = master.sch_params.copy(append=dict(stack_br=nsep))
+            self.sch_params = master.sch_params.copy(append=dict(stack_br=nsep, export_mid=export_mid))
         else:
-            self.sch_params = master.sch_params
+            self.sch_params = master.sch_params.copy(append=dict(export_mid=export_mid))

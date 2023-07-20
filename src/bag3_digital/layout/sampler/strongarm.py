@@ -105,14 +105,14 @@ class SAFrontendHalf(MOSBase):
         pg_tid = self.get_track_id(ridx_p, MOSWireType.G, wire_name='sig')
         vdd_tid = self.get_track_id(ridx_p, MOSWireType.G, wire_name='sup')
         pclk_tid = pg_tid
+        tail_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='tail')
+        tail_in_tid = self.get_track_id(ridx_in, MOSWireType.DS, wire_name='sig')
 
         if has_rstb:
             vss_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sup')
             nclk_tid = self.get_track_id(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=0)
             nrst_tid = self.get_track_id(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=1)
             prst_tid = self.get_track_id(ridx_p, MOSWireType.G, wire_name='sig', wire_idx=1)
-            tail_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='tail')
-            tail_in_tid = self.get_track_id(ridx_in, MOSWireType.DS, wire_name='sig')
 
             m_tail = self.add_mos(ridx_n, 0, seg_tail, w=w_tail, g_on_s=True, stack=2, sep_g=True)
             m_swo_rst = self.add_mos(ridx_p, seg_pfb, seg_swo, w=w_pfb)
@@ -124,11 +124,9 @@ class SAFrontendHalf(MOSBase):
             rstb_conn = g_conn[0::2]
             clk_conn = g_conn[1::2]
         else:
-            vss_tid = self.get_track_id(ridx_n, MOSWireType.G, wire_name='sup')
+            vss_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sup')
             nclk_tid = self.get_track_id(ridx_n, MOSWireType.G, wire_name='sig', wire_idx=-1)
             nrst_tid = prst_tid = None
-            tail_tid = self.get_track_id(ridx_n, MOSWireType.DS, wire_name='sig')
-            tail_in_tid = tail_tid
 
             m_tail = self.add_mos(ridx_n, 0, seg_tail, w=w_tail)
             m_swo = self.add_mos(ridx_p, seg_pfb, seg_swo, w=w_pfb)
@@ -159,25 +157,23 @@ class SAFrontendHalf(MOSBase):
                 vm_tidx = grid.coord_to_track(vm_layer, xrst, mode=RoundMode.GREATER_EQ)
                 self.connect_to_tracks([nrst, prst], TrackID(vm_layer, vm_tidx, width=vm_w))
 
-            tail = self.connect_to_tracks(tail_conn, tail_tid)
-            in_d = m_in.d
-            tail_in = self.connect_to_tracks(in_d, tail_in_tid)
-            self.add_pin('tail_in', tail_in)
-            tail_list = [tail, tail_in]
-            for warr in in_d.warr_iter():
-                xwire = grid.track_to_coord(conn_layer, warr.track_id.base_index)
-                vm_tidx = grid.coord_to_track(vm_layer, xwire, mode=RoundMode.GREATER_EQ)
-                self.connect_to_tracks(tail_list, TrackID(vm_layer, vm_tidx, width=vm_w))
-
             out = self.connect_wires([m_nfb.d, m_pfb.d, m_swo.d, m_swo_rst.d])
-            vdd = self.connect_to_tracks([m_pfb.s, m_swo.s, m_swm.s, m_swo_rst.s],
-                                         vdd_tid)
+            vdd = self.connect_to_tracks([m_pfb.s, m_swo.s, m_swm.s, m_swo_rst.s], vdd_tid)
             mid = self.connect_to_tracks([m_in.s, m_nfb.s, m_swm.d], mid_tid)
         else:
-            tail = self.connect_to_tracks([tail_conn, m_in.d], tail_tid)
             out = self.connect_wires([m_nfb.d, m_pfb.d, m_swo.d])
             vdd = self.connect_to_tracks([m_pfb.s, m_swo.s, m_swm.s], vdd_tid)
             mid = self.connect_to_tracks([m_in.s, m_nfb.s, m_swm.d], mid_tid)
+
+        tail = self.connect_to_tracks(tail_conn, tail_tid)
+        in_d = m_in.d
+        tail_in = self.connect_to_tracks(in_d, tail_in_tid)
+        self.add_pin('tail_in', tail_in, hide=True)
+        tail_list = [tail, tail_in]
+        for warr in in_d.warr_iter():
+            xwire = grid.track_to_coord(conn_layer, warr.track_id.base_index)
+            vm_tidx = grid.coord_to_track(vm_layer, xwire, mode=RoundMode.GREATER_EQ)
+            self.connect_to_tracks(tail_list, TrackID(vm_layer, vm_tidx, width=vm_w))
 
         vss = self.connect_to_tracks(vss_conn, vss_tid)
         nclk = self.connect_to_tracks(clk_conn, nclk_tid)
@@ -346,8 +342,8 @@ class SAFrontend(MOSBase):
                                  stack=nsep)
             self.connect_to_track_wires(m_br0.g, clk)
 
+        self.connect_wires([corel.get_pin('tail_in'), corer.get_pin('tail_in')])
         if corel.has_port('nrstb'):
-            self.connect_wires([corel.get_pin('tail_in'), corer.get_pin('tail_in')])
             rstb = self.connect_wires([corel.get_pin('nrstb'), corer.get_pin('nrstb')])
             if vertical_rstb:
                 self.add_pin('rstb', rstb)

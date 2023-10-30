@@ -54,6 +54,7 @@ class bag3_digital__inv(Module):
             stack_n='number of transistors in a stack.',
             p_in_gate_numbers='a List indicating input number of the gate',
             n_in_gate_numbers='a List indicating input number of the gate',
+            separate_out='True to draw separate p/n outputs',
             has_vtop='True if PMOS drain is not connected to VDD, but instead VTOP',
             has_vbot='True if NMOS drain is not connected to VSS, but instead VBOT',
         )
@@ -70,10 +71,11 @@ class bag3_digital__inv(Module):
             n_in_gate_numbers=None,
             has_vtop=False,
             has_vbot=False,
+            separate_out=False,
         )
 
     def design(self, seg: int, seg_p: int, seg_n: int, lch: int, w_p: int, w_n: int, th_p: str,
-               th_n: str, stack_p: int, stack_n: int, has_vtop: bool, has_vbot: bool,
+               th_n: str, stack_p: int, stack_n: int, has_vtop: bool, has_vbot: bool, separate_out: bool,
                p_in_gate_numbers: Optional[List[int]] = None,
                n_in_gate_numbers: Optional[List[int]] = None) -> None:
         if seg_p <= 0:
@@ -89,6 +91,12 @@ class bag3_digital__inv(Module):
         self._reconnect_gate('XP', stack_p, p_in_gate_numbers, 'VSS')
         self._reconnect_gate('XN', stack_n, n_in_gate_numbers, 'VDD')
 
+        if separate_out:
+            self.add_pin('pout', TermType.output)
+            self.add_pin('nout', TermType.output)
+            self.remove_pin('out')
+            self.reconnect_instance_terminal('XP', 'd', 'pout')
+            self.reconnect_instance_terminal('XN', 'd', 'nout')
         if has_vbot:
             self.reconnect_instance_terminal('XN', 's', 'VBOT')
             self.add_pin('VBOT', TermType.inout)

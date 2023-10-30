@@ -58,7 +58,7 @@ class bag3_digital__inv_chain(Module):
         if num < 1:
             raise ValueError('Cannot have 0 inverters.')
         if export_pins and dual_output:
-            raise ValueError("oops! export_pins and dual_output cannot be True at the same time, "                             
+            raise ValueError("oops! export_pins and dual_output cannot be True at the same time, "
                              "check inv_chain's schematic generator")
         if num == 1:
             self.instances['XINV'].design(**inv_params[0])
